@@ -5,8 +5,6 @@ fileman.prep = function(EWD) {
   $('body').on('click', '#app-fileman', function() {
     fileman.prepWidgets();
     
-    // fileman.selectField(EWD);
-    
     // Clear the page
     $('#main-content').html('');
     
@@ -17,6 +15,8 @@ fileman.prep = function(EWD) {
     };
     EWD.getFragment(params, function() {
       fileman.selectFile(EWD);
+      fileman.selectField(EWD);
+      fileman.prepSubmitButton(EWD);
     });
   });
 };
@@ -25,7 +25,7 @@ fileman.prepWidgets = function() {
   // jQuery Autocomplete Widget ~ https://api.jqueryui.com/autocomplete/
   // Extend the widget by redefining it
   // Perhaps I should define a new widget, but for now...
-  $.widget( "ui.autocomplete", $.ui.autocomplete, {
+  $.widget('ui.autocomplete', $.ui.autocomplete, {
     _renderItem: function(ul, item) {
       // Grab fields data from autocomplete element
       let fields = this.element.data('fields');
@@ -66,44 +66,39 @@ fileman.prepWidgets = function() {
       }
     }
   });
-}
+};
 
 fileman.selectFile = function(EWD) {
-  // Set up this button
-  // $('#vista-user-btn').on('click', function(e) {
-  //   let user = $('#vista-user').data().record;
-  //
-  //   if (user) {
-  //     toastr['info']('Check the console for user data');
-  //
-  //     console.log('User data:');
-  //     console.log(user);
-  //   }
-  //   else {
-  //     toastr['warning']('You must select a user');
-  //   }
-  // });
-  
+  // Set up file input button
   $('#query-file-btn').on('click', function(e) {
-    let record = $('#query-file').data().record;
-    let query = {
-      file: {
-        name: record.name,
-        number: record.ien
-      },
-      fields: [],
-    }
+    let file = $('#query-file').data('record');
+
+    if (file) {
+      let query = {
+        file: {
+          name: file.name,
+          number: file.ien
+        },
+        fields: [],
+      };
     
-    $('#query-params').data(query);
+      $('#query-params').data(query);
+      
+      $('#query-field').removeAttr('disabled');
+      $('#query-field-btn').removeAttr('disabled');
+    }
+    else {
+      toastr['warning']('You must select a file');
+    }
   });
   
   // Set up the file input widget
-  $( "#query-file" ).autocomplete({
+  $('#query-file').autocomplete({
     minLength: 0,
     delay: 200,
     source: function(request, response) {
-      // element will be a jQuery UI object
-      let element = this.element;
+      // input will be a jQuery UI object
+      let input = this.element;
       
       let messageObj = {
         service: 'ewd-vista-fileman',
@@ -119,11 +114,24 @@ fileman.selectFile = function(EWD) {
       };
       EWD.send(messageObj, function(responseObj) {
         let results = responseObj.message.results;
+        
+        //  Create a pseudo-field for this special input to show file number
+        results.fields.push(
+          {
+            key: 'number',
+            name: 'Number',
+            number: ''
+          }
+        );
+        // Populate records with the pseudo-field
+        results.records.forEach(function(record) {
+          record.number = record.ien;
+        });
                 
-        // Attach file & fields data to the element so the menu can use it
-        if (!element.data('fields')) {
-          element.data('file', results.file);
-          element.data('fields', results.fields);
+        // Attach file & fields data to the HTML element so the menu can use it
+        if (!input.data('fields')) {
+          input.data('file', results.file);
+          input.data('fields', results.fields);
         }
         
         response(results.records);
@@ -132,52 +140,102 @@ fileman.selectFile = function(EWD) {
   });
 };
 
-// fileman.selectField = function(EWD) {
-//   // Set up the field input widget
-//   $('#query-field').autocomplete({
-//     minLength: 0,
-//     delay: 200,
-//     source: function(request, response) {
-//       let file   = $('#query-file').data().file.number;
-//       let fields = $('#query-params').data().fields.map(x => {return x.number;});
-//
-//       // element will be a jQuery UI object
-//       let element = this.element;
-//
-//       let messageObj = {
-//         service: 'ewd-vista-fileman',
-//         type: 'getFields',
-//         params: {
-//           query: {
-//             file: {
-//               number: '200',
-//               name: 'NEW PERSON'
-//             }
-//           }
-//         }
-//       };
-//       EWD.send(messageObj, function(responseObj) {
-//         let results = responseObj.message.results;
-//
-//         // Attach file & fields data to the element so the menu can use it
-//         if (!element.data('fields')) {
-//           element.data('file', results.file);
-//           element.data('fields', results.fields);
-//         }
-//
-//         response(results.records);
-//       });
-//     }
-//   });
-//
-//
-//
-//
-//   EWD.send(messageObj, function(responseObj) {
-//     let results = responseObj.message.results;
-//
-//     console.log(results);
-//   });
-// };
+fileman.selectField = function(EWD) {
+  // Set up field input button
+  $('#query-field-btn').on('click', function(e) {
+    let field = $('#query-field').data('record');
+
+    if (field) {
+      // Update query data
+      let fields = $('#query-params').data('fields');
+      fields.push(field);
+      $('#query-params').data('fields', fields);
+      
+      // Update displayed list of fields
+      let fieldsString = $('#query-params').val();
+      if (fieldsString) {
+        fieldsString   = fieldsString + ', ';
+      }
+      fieldsString     = fieldsString + field.name;
+      $('#query-params').val(fieldsString);
+      
+      // Clear input
+      $('#query-field').removeData('record');
+      $('#query-field').val('');
+      
+      // Enable submit button
+      $('#query-submit-btn').removeAttr('disabled');
+    }
+    else {
+      toastr['warning']('You must select a field');
+    }
+  });
+  
+  // Set up the file input widget
+  $('#query-field').autocomplete({
+    minLength: 0,
+    delay: 200,
+    source: function(request, response) {
+      // input will be a jQuery UI object
+      let input = this.element;
+      
+      let messageObj = {
+        service: 'ewd-vista-fileman',
+        type: 'getFields',
+        params: {
+          query: {
+            file: {
+              name: $('#query-params').data('file').name,
+              number: $('#query-params').data('file').number
+            }
+          }
+        }
+      };
+      EWD.send(messageObj, function(responseObj) {
+        let results = responseObj.message.results;
+        let records = [];
+        
+        // We've overriden auto-matching, so only return matching records
+        results.records.forEach(function(record) {
+          if (record.name.match(request.term)) {
+            records.push(record);
+          }
+        });
+        
+        // Attach file & fields data to the HTML element so the menu can use it
+        if (!input.data('fields')) {
+          input.data('file', results.file);
+          input.data('fields', results.fields);
+        }
+        
+        response(records);
+      });
+    }
+  });
+};
+
+fileman.prepSubmitButton = function(EWD) {
+  $('#query-submit-btn').on('click', function() {
+    let messageObj = {
+      service: 'ewd-vista-fileman',
+      type: 'listDic',
+      params: {
+        query: {
+          file: {
+            number: $('#query-params').data('file').number
+          },
+          fields: $('#query-params').data('fields').map(x => { return x.number; }),
+          string: '',
+          quantity: ''
+        }
+      }
+    };
+    EWD.send(messageObj, function(responseObj) {
+      let results = responseObj.message.results;
+      
+      console.log(results);
+    });
+  });
+};
 
 // module.exports = fileman;

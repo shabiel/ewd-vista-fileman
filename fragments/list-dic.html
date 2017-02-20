@@ -3,16 +3,16 @@
   
   <div class="form-group">
     <label for="query-file">File</label>
-    <input type="text" class="form-control" id="query-file" placeholder="File name">
+    <input id="query-file" class="form-control" type="text" placeholder="File name">
     
     <button id="query-file-btn" class="btn btn-primary">Set</button>
   </div>
   
   <div class="form-group">
     <label for="query-field">Field</label>
-    <input type="text" class="form-control" id="query-field" placeholder="Field name">
+    <input id="query-field" class="form-control" type="text" placeholder="Field name" disabled>
     
-    <button id="query-field-btn" class="btn btn-primary">Add</button>
+    <button id="query-field-btn" class="btn btn-primary" disabled>Add</button>
   </div>
   
   <div class="form-group">
@@ -20,6 +20,6 @@
     <textarea type="text" class="form-control" id="query-params" disabled></textarea>
     
     <button id="query-clear-btn" class="btn btn-danger">Clear</button>
-    <button id="query-submit-btn" class="btn btn-success">Submit</button>
+    <button id="query-submit-btn" class="btn btn-success" disabled>Submit</button>
   </div>
 </div>
