@@ -244,6 +244,8 @@ fileman.prepClearButton = function() {
     $('#query-file').val('');
     $('#query-file-btn').removeAttr('disabled');
     $('#query-file').removeAttr('disabled');
+    
+    $('#fileman-results').remove();
   });
 };
 
