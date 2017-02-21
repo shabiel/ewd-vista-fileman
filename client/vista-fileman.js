@@ -16,6 +16,7 @@ fileman.prep = function(EWD) {
     EWD.getFragment(params, function() {
       fileman.selectFile(EWD);
       fileman.selectField(EWD);
+      fileman.prepClearButton();
       fileman.prepSubmitButton(EWD);
     });
   });
@@ -86,6 +87,9 @@ fileman.selectFile = function(EWD) {
       
       $('#query-field').removeAttr('disabled');
       $('#query-field-btn').removeAttr('disabled');
+      
+      $('#query-file').attr('disabled', 'disabled');
+      $('#query-file-btn').attr('disabled', 'disabled');
     }
     else {
       toastr['warning']('You must select a file');
@@ -196,11 +200,21 @@ fileman.selectField = function(EWD) {
         let records = [];
         
         // We've overriden auto-matching, so only return matching records
+        // First include records matching at beginning of name
         results.records.forEach(function(record) {
-          if (record.name.match(request.term)) {
+          let regex = new RegExp('^' + request.term);
+          if (record.name.match(regex)) {
             records.push(record);
           }
         });
+        // Add records that match anywhere in the name
+        results.records.forEach(function(record) {
+          if (record.name.match(request.term) && !records.includes(record)) {
+            records.push(record);
+          }
+        });
+        // Limit results
+        records = records.slice(0,8);
         
         // Attach file & fields data to the HTML element so the menu can use it
         if (!input.data('fields')) {
@@ -211,6 +225,25 @@ fileman.selectField = function(EWD) {
         response(records);
       });
     }
+  });
+};
+
+fileman.prepClearButton = function() {
+  $('#query-clear-btn').on('click', function() {
+    $('#query-submit-btn').attr('disabled', 'disabled');
+    
+    $('#query-params').removeData(['file', 'fields']);
+    $('#query-params').val('');
+    
+    $('#query-field').attr('disabled', 'disabled');
+    $('#query-field').removeData(['file', 'fields', 'record']);
+    $('#query-field-btn').val('');
+    
+    
+    $('#query-file').removeData(['record']);
+    $('#query-file').val('');
+    $('#query-file-btn').removeAttr('disabled');
+    $('#query-file').removeAttr('disabled');
   });
 };
 
@@ -233,9 +266,40 @@ fileman.prepSubmitButton = function(EWD) {
     EWD.send(messageObj, function(responseObj) {
       let results = responseObj.message.results;
       
-      console.log(results);
+      fileman.showResults(results, EWD);
     });
   });
+};
+
+fileman.showResults = function(results, EWD) {
+  
+  
+  let html = '';
+  html = html + '<div id="fileman-results" class="main">';
+  html = html + '<h3 class="sub-header">Query Results</h3>';
+  html = html + '<div class="table-responsive">';
+  html = html + '<table class="table table-striped">';
+  html = html + '<thead>';
+  html = html + '<tr>';
+  results.fields.forEach(function(field) {
+    html = html + '<tH>' + field.name + '</tH>';
+  });
+  html = html + '</tr>';
+  html = html + '</thead>';
+  html = html + '<tbody>';
+  results.records.forEach(function(record) {
+    html = html + '<tr>';
+    results.fields.forEach(function(field) {
+      html = html + '<td>' + record[field.key] + '</td>';
+    });
+    html = html + '</tr>';
+  });
+  html = html + '</tbody>';
+  html = html + '</table>';
+  html = html + '</div>';
+  html = html + '</div>';
+  
+  $('#fileman').append(html);
 };
 
 // module.exports = fileman;
