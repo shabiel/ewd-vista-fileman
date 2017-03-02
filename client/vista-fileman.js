@@ -111,7 +111,8 @@ fileman.selectFile = function(EWD) {
           query: {
             file: {number: '1'},
             fields: ['.01'],
-            string: request.term,
+            stringFrom: request.term,
+            stringPart: request.term,
             quantity: 8
           }
         }
@@ -256,12 +257,10 @@ fileman.prepSubmitButton = function(EWD) {
       type: 'listDic',
       params: {
         query: {
-          file: {
-            number: $('#query-params').data('file').number
-          },
+          file: {number: $('#query-params').data('file').number},
           fields: $('#query-params').data('fields').map(x => { return x.number; }),
-          string: '',
-          quantity: ''
+          stringFrom: '',
+          stringPart: ''
         }
       }
     };
