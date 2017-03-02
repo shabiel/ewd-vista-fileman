@@ -273,7 +273,7 @@ fileman.prepSubmitButton = function(EWD) {
 };
 
 fileman.showResults = function(results, EWD) {
-  
+  console.log(results);
   
   let html = '';
   html = html + '<div id="fileman-results" class="main">';
@@ -303,4 +303,7 @@ fileman.showResults = function(results, EWD) {
   $('#fileman').append(html);
 };
 
+
+
 // module.exports = fileman;
+
