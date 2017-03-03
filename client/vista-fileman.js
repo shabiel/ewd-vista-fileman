@@ -110,15 +110,19 @@ fileman.selectFile = function(EWD) {
         params: {
           query: {
             file: {number: '1'},
-            fields: ['.01'],
+            fields: [{number: '.01'}],
             stringFrom: request.term,
             stringPart: request.term,
-            quantity: 8
+            quantity: '8'
           }
         }
       };
       EWD.send(messageObj, function(responseObj) {
         let results = responseObj.message.results;
+        
+        if (results.error) {
+          toastr["error"](results.error.msg, results.error.code);
+        }
         
         //  Create a pseudo-field for this special input to show file number
         results.fields.push(
@@ -200,6 +204,10 @@ fileman.selectField = function(EWD) {
         let results = responseObj.message.results;
         let records = [];
         
+        if (results.error) {
+          toastr["error"](results.error.msg, results.error.code);
+        }
+        
         // We've overriden auto-matching, so only return matching records
         // First include records matching at beginning of name
         results.records.forEach(function(record) {
@@ -258,7 +266,7 @@ fileman.prepSubmitButton = function(EWD) {
       params: {
         query: {
           file: {number: $('#query-params').data('file').number},
-          fields: $('#query-params').data('fields').map(x => { return x.number; }),
+          fields: $('#query-params').data('fields'),
           stringFrom: '',
           stringPart: ''
         }
@@ -267,14 +275,16 @@ fileman.prepSubmitButton = function(EWD) {
     EWD.send(messageObj, function(responseObj) {
       let results = responseObj.message.results;
       
+      if (results.error) {
+        toastr["error"](results.error.msg, results.error.code);
+      }
+      
       fileman.showResults(results, EWD);
     });
   });
 };
 
 fileman.showResults = function(results, EWD) {
-  console.log(results);
-  
   let html = '';
   html = html + '<div id="fileman-results" class="main">';
   html = html + '<h3 class="sub-header">Query Results</h3>';
@@ -302,8 +312,6 @@ fileman.showResults = function(results, EWD) {
   
   $('#fileman').append(html);
 };
-
-
 
 // module.exports = fileman;
 
