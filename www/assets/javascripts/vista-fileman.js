@@ -121,7 +121,7 @@ fileman.selectFile = function(EWD) {
         let results = responseObj.message.results;
         
         if (results.error) {
-          toastr["error"](results.error.msg, results.error.code);
+          toastr['error'](results.error.msg, results.error.code);
         }
         
         //  Create a pseudo-field for this special input to show file number
