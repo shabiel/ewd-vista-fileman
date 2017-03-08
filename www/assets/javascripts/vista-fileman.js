@@ -8,6 +8,10 @@ fileman.prep = function(EWD) {
     // Clear the page
     $('#main-content').html('');
     
+    // Add to app feature/option menu.
+    $('#app-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-list-dic">LIST^DIC</a></li>');
+    $('#app-menu').removeClass('invisible');
+    
     let params = {
       service: 'ewd-vista-fileman',
       name: 'list-dic.html',
