@@ -3,37 +3,102 @@ var fileman = {};
 // Load CSS & set up nav
 fileman.prep = function(EWD) {
   $('body').on('click', '#app-fileman', function() {
-    fileman.prepWidgets();
+    vista.switchApp();
     
-    // Clear the page
-    $('#main-content').html('');
+    fileman.prepWidgets(EWD);
+    
+    // Set up app menu items
+    $('body').on('click', '#option-fileman-dev', function() {
+      // Clear the page
+      $('#main-content').html('');
+      
+      let params = {
+        service: 'ewd-vista-fileman',
+        name: 'dev.html',
+        targetId: 'main-content',
+      };
+      EWD.getFragment(params, function() {
+        fileman.dev(EWD);
+      });
+    });
+    $('body').on('click', '#option-fileman-list-dic', function() {
+      // Clear the page
+      $('#main-content').html('');
+      
+      let params = {
+        service: 'ewd-vista-fileman',
+        name: 'list-dic.html',
+        targetId: 'main-content',
+      };
+      EWD.getFragment(params, function() {
+        fileman.selectFile(EWD);
+        fileman.selectField(EWD);
+        fileman.prepClearButton();
+        fileman.prepSubmitButton(EWD);
+      });
+    });
     
     // Add to app feature/option menu.
+    $('#app-menu #app-name').text('Fileman');
+    $('#app-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-dev">Dev</a></li>');
     $('#app-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-list-dic">LIST^DIC</a></li>');
     $('#app-menu').removeClass('invisible');
     
-    let params = {
-      service: 'ewd-vista-fileman',
-      name: 'list-dic.html',
-      targetId: 'main-content',
-    };
-    EWD.getFragment(params, function() {
-      fileman.selectFile(EWD);
-      fileman.selectField(EWD);
-      fileman.prepClearButton();
-      fileman.prepSubmitButton(EWD);
-    });
+    $('#option-fileman-dev').click();
   });
 };
 
-fileman.prepWidgets = function() {
+fileman.prepWidgets = function(EWD) {
   // jQuery Autocomplete Widget ~ https://api.jqueryui.com/autocomplete/
   // Extend the widget by redefining it
-  // Perhaps I should define a new widget, but for now...
   $.widget('ui.autocomplete', $.ui.autocomplete, {
     _renderItem: function(ul, item) {
       // Grab fields data from autocomplete element
       let fields = this.element.data('fields');
+
+      let html = '';
+      html = html + '<li>';
+      html = html + '<span>' + item[fields[1].key] + '</span>';
+      for (let i = 2; i < fields.length; i++) {
+        html = html + '<br>';
+        html = html + '<span class="indent">';
+        html = html + fields[i].name + ': ';
+        html = html + item[fields[i].key];
+        html = html + '</span>';
+      }
+      html = html + '</li>';
+
+      return $(html).appendTo(ul);
+    },
+    options: {
+      focus: function(event, ui) {
+        // Grab fields data from autocomplete element
+        let fields = $(this).data('fields');
+
+        // Show display field
+        $(event.target).val(ui.item[fields[1].key]);
+
+        return false;
+      },
+      select: function(event, ui) {
+        // Grab fields data from autocomplete element
+        let fields = $(this).data('fields');
+
+        // Attach record data to the element & show display field
+        $(event.target).data('record', ui.item);
+        $(event.target).val(ui.item[fields[1].key]);
+
+        return false;
+      }
+    }
+  });
+  
+  // jQuery Autocomplete Widget ~ https://api.jqueryui.com/autocomplete/
+  // Extend the widget
+  $.widget('vista.filemanListDic', $.ui.autocomplete, {
+    _renderItem: function(ul, item) {
+      // Grab fields data from autocomplete element
+      let fields = this.element.data('fileman').fields;
       
       let html = '';
       html = html + '<li>';
@@ -46,31 +111,62 @@ fileman.prepWidgets = function() {
         html = html + '</span>';
       }
       html = html + '</li>';
-      
+
       return $(html).appendTo(ul);
     },
     options: {
+      minLength: 0,
+      delay: 200,
       focus: function(event, ui) {
         // Grab fields data from autocomplete element
-        let fields = $(this).data('fields');
-        
+        let fields = $(this).data('fileman').fields;
+
         // Show display field
         $(event.target).val(ui.item[fields[1].key]);
-        
+
         return false;
       },
       select: function(event, ui) {
         // Grab fields data from autocomplete element
-        let fields = $(this).data('fields');
-        
+        let fields = $(this).data('fileman').fields;
+
         // Attach record data to the element & show display field
-        $(event.target).data('record', ui.item);
+        $(event.target).data('fileman').record = ui.item;
         $(event.target).val(ui.item[fields[1].key]);
-        
+
         return false;
+      },
+      source: function(request, response) {
+        // input will be a jQuery UI object
+        let input = this.element;
+        
+        let query        = Object.assign({}, $(input).data('fileman'));
+        query.fields     = [];
+        query.stringFrom = request.term;
+        query.stringPart = request.term;
+        query.quantity   = '8'
+        let messageObj = {
+          type: 'listDic',
+          params: {query}
+        };
+        EWD.send(messageObj, function(responseObj) {
+          let results = responseObj.message.results;
+          
+          if (results.error) {
+            toastr['error'](results.error.msg, results.error.code);
+          }
+
+          // Attach file & fields data to the HTML element so the menu can use it
+          if (!input.data('fileman').fields) {
+            input.data('fileman').file   = results.file;
+            input.data('fileman').fields = results.fields;
+          }
+
+          response(results.records);
+        });
       }
     }
-  });
+  }); // End ~ $.widget('vista.autocomplete', $.ui.autocomplete, {
 };
 
 fileman.selectFile = function(EWD) {
@@ -107,9 +203,8 @@ fileman.selectFile = function(EWD) {
     source: function(request, response) {
       // input will be a jQuery UI object
       let input = this.element;
-      
+
       let messageObj = {
-        service: 'ewd-vista-fileman',
         type: 'listDic',
         params: {
           query: {
@@ -123,11 +218,11 @@ fileman.selectFile = function(EWD) {
       };
       EWD.send(messageObj, function(responseObj) {
         let results = responseObj.message.results;
-        
+
         if (results.error) {
           toastr['error'](results.error.msg, results.error.code);
         }
-        
+
         //  Create a pseudo-field for this special input to show file number
         results.fields.push(
           {
@@ -140,13 +235,13 @@ fileman.selectFile = function(EWD) {
         results.records.forEach(function(record) {
           record.number = record.ien;
         });
-                
+
         // Attach file & fields data to the HTML element so the menu can use it
         if (!input.data('fields')) {
           input.data('file', results.file);
           input.data('fields', results.fields);
         }
-        
+
         response(results.records);
       });
     }
@@ -265,7 +360,6 @@ fileman.prepClearButton = function() {
 fileman.prepSubmitButton = function(EWD) {
   $('#query-submit-btn').on('click', function() {
     let messageObj = {
-      service: 'ewd-vista-fileman',
       type: 'listDic',
       params: {
         query: {
@@ -315,6 +409,11 @@ fileman.showResults = function(results, EWD) {
   html = html + '</div>';
   
   $('#fileman').append(html);
+};
+
+fileman.dev = function(EWD) {
+  // Set up the file input widget
+  $('.fileman-list-dic').filemanListDic();
 };
 
 // module.exports = fileman;
