@@ -18,7 +18,7 @@ fileman.prep = function(EWD) {
         targetId: 'main-content',
       };
       EWD.getFragment(params, function() {
-        fileman.dev(EWD);
+        fileman.initAutocompletes(EWD);
       });
     });
     $('body').on('click', '#option-fileman-list-dic', function() {
@@ -95,22 +95,55 @@ fileman.prepWidgets = function(EWD) {
   
   // jQuery Autocomplete Widget ~ https://api.jqueryui.com/autocomplete/
   // Extend the widget
-  $.widget('vista.filemanListDic', $.ui.autocomplete, {
+  $.widget('vista.filemanAutocomplete', $.ui.autocomplete, {
+    _create: function() {
+      // Save the data from our custom data attribute 
+      let input      = this.element;
+      let query      = JSON.parse(input.attr('data-fileman'));
+      query.quantity = query.quantity || '8';
+      /* Clean up HTML so jQuery doesn't keep causing colisions as we
+      manipulate the HTML5 Dataset */
+      input.removeAttr('data-fileman');
+      input.data('fileman', query);
+      
+      let messageObj = {
+        type: 'listDic',
+        params: {query}
+      };
+      EWD.send(messageObj, function(responseObj) {
+        let results = responseObj.message.results;
+        
+        if (results.error) {
+          toastr['error'](results.error.msg, ('Fileman error code: ' + results.error.code));
+        }
+        
+        input.data('fileman').file   = results.file;
+        input.data('fileman').fields = results.fields;
+      });
+      
+      this._super();
+    },
     _renderItem: function(ul, item) {
       // Grab fields data from autocomplete element
       let fields = this.element.data('fileman').fields;
-      
-      let html = '';
-      html = html + '<li>';
-      html = html + '<span>' + item[fields[1].key] + '</span>';
+            
+      let html   = '';
+      html       = html + '<li>';
+      html       = html + '<span>' + item[fields[1].key] + '</span>';
       for (let i = 2; i < fields.length; i++) {
-        html = html + '<br>';
-        html = html + '<span class="indent">';
-        html = html + fields[i].name + ': ';
-        html = html + item[fields[i].key];
-        html = html + '</span>';
+        // Skip fields with neither name nor value
+        if (fields[i].name || item[fields[i].key]) {
+          html   = html + '<br>';
+          html   = html + '<span class="indent">';
+          // No labels for writeable identifier fields
+          if (fields[i].name) {
+            html = html + fields[i].name + ': ';
+          }
+          html   = html + item[fields[i].key];
+          html   = html + '</span>';
+        }
       }
-      html = html + '</li>';
+      html       = html + '</li>';
 
       return $(html).appendTo(ul);
     },
@@ -120,9 +153,9 @@ fileman.prepWidgets = function(EWD) {
       focus: function(event, ui) {
         // Grab fields data from autocomplete element
         let fields = $(this).data('fileman').fields;
-
+        
         // Show display field
-        $(event.target).val(ui.item[fields[1].key]);
+        $(this).val(ui.item[fields[1].key]);
 
         return false;
       },
@@ -131,8 +164,11 @@ fileman.prepWidgets = function(EWD) {
         let fields = $(this).data('fileman').fields;
 
         // Attach record data to the element & show display field
-        $(event.target).data('fileman').record = ui.item;
-        $(event.target).val(ui.item[fields[1].key]);
+        $(this).data('fileman').record = ui.item;
+        $(this).val(ui.item[fields[1].key]);
+        
+        // Enable "show" button
+        $(this).parents('.form-group').find('.fileman-show').removeAttr('disabled');
 
         return false;
       },
@@ -140,11 +176,27 @@ fileman.prepWidgets = function(EWD) {
         // input will be a jQuery UI object
         let input = this.element;
         
+        // Get query properties from element's dataset
         let query        = Object.assign({}, $(input).data('fileman'));
-        query.fields     = [];
+        /* We need to know about the IEN "field" so we can parse results from the
+        server, but we don't want to include IEN in the fields we request. */
+        if (query.fields && Array.isArray(query.fields) && query.fields.length) {
+          query.fields   = query.fields.slice(1);
+          query.fields.forEach(function(field) {
+            /*
+            The absence of a field number now might indicate a writeable
+            identifier. In any event, passing an empty field number will create
+            problems. So we assume the intended query did not specify fields.
+            */
+            if (field.number == '') {
+              query.fields = '';
+              return;
+            }
+          });
+        }
         query.stringFrom = request.term;
         query.stringPart = request.term;
-        query.quantity   = '8'
+        
         let messageObj = {
           type: 'listDic',
           params: {query}
@@ -153,20 +205,14 @@ fileman.prepWidgets = function(EWD) {
           let results = responseObj.message.results;
           
           if (results.error) {
-            toastr['error'](results.error.msg, results.error.code);
-          }
-
-          // Attach file & fields data to the HTML element so the menu can use it
-          if (!input.data('fileman').fields) {
-            input.data('fileman').file   = results.file;
-            input.data('fileman').fields = results.fields;
+            toastr['error'](results.error.msg, ('Fileman error code: ' + results.error.code));
           }
 
           response(results.records);
         });
       }
     }
-  }); // End ~ $.widget('vista.autocomplete', $.ui.autocomplete, {
+  }); // End ~ $.widget('vista.filemanAutocomplete', $.ui.autocomplete, {
 };
 
 fileman.selectFile = function(EWD) {
@@ -411,9 +457,32 @@ fileman.showResults = function(results, EWD) {
   $('#fileman').append(html);
 };
 
-fileman.dev = function(EWD) {
-  // Set up the file input widget
-  $('.fileman-list-dic').filemanListDic();
+fileman.initAutocompletes = function(EWD) {
+  // Initialize the file input widgets
+  $('.fileman-autocomplete').filemanAutocomplete();
+  /*
+  Pre-populate menu on focus. The widget focus event pertains to the items in
+  the menu/list, not the input itself. This also depends on minLength=0.
+  */
+  $('.fileman-autocomplete').focus(function() {
+    $(this).filemanAutocomplete('search');
+  });
+  
+  // Clear buttons
+  $('.fileman-clear').click(function(e) {
+    let input = $(this).parents('.form-group').find('.fileman-autocomplete');
+    delete input.data('fileman').record;
+    input.val('');
+    
+    $(this).parents('.form-group').find('.fileman-show').attr('disabled', 'disabled');
+  });
+  // Show buttons
+  $('.fileman-show').click(function(e) {
+    let data = $(this).parents('.form-group').find('.fileman-autocomplete').data('fileman').record;
+    
+    console.log('Record:');
+    console.log(data);
+  });
 };
 
 // module.exports = fileman;
