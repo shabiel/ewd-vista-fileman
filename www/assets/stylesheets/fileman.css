@@ -3,7 +3,14 @@
   clear: left;
 }
 
-/* jQuery UI Autocomplete widget */
+/* Extended jQuery UI Autocomplete widgets */
+.ui-menu-item-wrapper.ui-state-active,
+.ui-menu-item-wrapper.ui-state-hover {
+  border: none;
+  background: none;
+  font-weight: bold;
+}
+
 .ui-menu-item-wrapper.indent {
   margin-left: 16px;
 }
@@ -13,9 +20,3 @@
   margin-left: 16px;
 }
 
-.ui-menu-item-wrapper.ui-state-active,
-.ui-menu-item-wrapper.ui-state-hover {
-  border: none;
-  background: none;
-  font-weight: bold;
-}

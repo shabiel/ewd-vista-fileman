@@ -76,7 +76,7 @@ fileman.prepWidgets = function(EWD) {
         let fields = $(this).data('fields');
 
         // Show display field
-        $(event.target).val(ui.item[fields[1].key]);
+        $(this).val(ui.item[fields[1].key]);
 
         return false;
       },
@@ -85,8 +85,8 @@ fileman.prepWidgets = function(EWD) {
         let fields = $(this).data('fields');
 
         // Attach record data to the element & show display field
-        $(event.target).data('record', ui.item);
-        $(event.target).val(ui.item[fields[1].key]);
+        $(this).data('record', ui.item);
+        $(this).val(ui.item[fields[1].key]);
 
         return false;
       }
@@ -97,15 +97,16 @@ fileman.prepWidgets = function(EWD) {
   // Extend the widget
   $.widget('vista.filemanAutocomplete', $.ui.autocomplete, {
     _create: function() {
-      // Save the data from our custom data attribute 
+      // Save the data from our custom data attribute
       let input      = this.element;
       let query      = JSON.parse(input.attr('data-fileman'));
       query.quantity = query.quantity || '8';
       /* Clean up HTML so jQuery doesn't keep causing colisions as we
-      manipulate the HTML5 Dataset */
+      manipulate the HTML5 dataset */
       input.removeAttr('data-fileman');
       input.data('fileman', query);
       
+      // Now fetch, parse, & save complete Fileman query data
       let messageObj = {
         type: 'listDic',
         params: {query}
@@ -119,6 +120,14 @@ fileman.prepWidgets = function(EWD) {
         
         input.data('fileman').file   = results.file;
         input.data('fileman').fields = results.fields;
+      });
+      
+      /*
+      Pre-populate menu on focus. The widget focus event pertains to the items
+      in the menu/list, not the input itself. This also depends on minLength=0.
+      */
+      input.focus(function() {
+        $(input).filemanAutocomplete('search');
       });
       
       this._super();
@@ -147,9 +156,15 @@ fileman.prepWidgets = function(EWD) {
 
       return $(html).appendTo(ul);
     },
+    getId: function() {
+      return this.element.attr('id');
+    },
     options: {
       minLength: 0,
       delay: 200,
+      classes: {
+        'ui-autocomplete': 'fileman-autocomplete-menu'
+      },
       focus: function(event, ui) {
         // Grab fields data from autocomplete element
         let fields = $(this).data('fileman').fields;
@@ -460,13 +475,6 @@ fileman.showResults = function(results, EWD) {
 fileman.initAutocompletes = function(EWD) {
   // Initialize the file input widgets
   $('.fileman-autocomplete').filemanAutocomplete();
-  /*
-  Pre-populate menu on focus. The widget focus event pertains to the items in
-  the menu/list, not the input itself. This also depends on minLength=0.
-  */
-  $('.fileman-autocomplete').focus(function() {
-    $(this).filemanAutocomplete('search');
-  });
   
   // Clear buttons
   $('.fileman-clear').click(function(e) {
