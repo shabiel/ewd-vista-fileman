@@ -127,8 +127,27 @@ fileman.prepWidgets = function(EWD) {
       in the menu/list, not the input itself. This also depends on minLength=0.
       */
       input.focus(function() {
-        $(input).filemanAutocomplete('search');
+        input.filemanAutocomplete('search');
+        
+        // Set up menu for expansion
+        let menu = input.data('vistaFilemanAutocomplete').menu.element;
+        menu.on( "menufocus", function( event, ui ) {
+          if ($(this).menu( "isLastItem" )) {
+            // Don't attempt to expand menu if the last search returned all 
+            // matches.
+            let menuQuantity  = menu[0].childElementCount;
+            let queryQuantity = input.data('fileman').quantity;
+            
+            if (menuQuantity >= queryQuantity) {
+              input.data('fileman').quantity = input.data('fileman').quantity * 2;
+
+              input.filemanAutocomplete('search');
+            }
+          }
+        });
       });
+      
+      
       
       this._super();
     },
@@ -166,12 +185,7 @@ fileman.prepWidgets = function(EWD) {
         'ui-autocomplete': 'fileman-autocomplete-menu'
       },
       focus: function(event, ui) {
-        // Grab fields data from autocomplete element
-        let fields = $(this).data('fileman').fields;
-        
-        // Show display field
-        $(this).val(ui.item[fields[1].key]);
-
+        // Handle menu item focus in _create()
         return false;
       },
       select: function(event, ui) {
@@ -193,9 +207,11 @@ fileman.prepWidgets = function(EWD) {
         
         // Get query properties from element's dataset
         let query        = Object.assign({}, $(input).data('fileman'));
-        /* We need to know about the IEN "field" so we can parse results from the
-        server, but we don't want to include IEN in the fields we request. */
         if (query.fields && Array.isArray(query.fields) && query.fields.length) {
+          /*
+          We need to know about the IEN "field" so we can parse results from the
+          server, but we don't want to include IEN in the fields we request.
+          */
           query.fields   = query.fields.slice(1);
           query.fields.forEach(function(field) {
             /*
