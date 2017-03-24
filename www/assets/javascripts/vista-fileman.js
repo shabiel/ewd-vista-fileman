@@ -186,7 +186,6 @@ fileman.prepWidgets = function(EWD) {
       else {
         menuHeight                = menu.height();
         input.data('menu').height = menuHeight;
-
         menu.height(menuHeight);
       }
       
@@ -234,9 +233,9 @@ fileman.prepWidgets = function(EWD) {
         return false;
       },
       open: function(event, ui) {
-        let input      = $(this);
-        let menu       = $(this).data('vistaFilemanAutocomplete').menu.element;
-        let menuData   = $(this).data('menu');
+        let input    = $(this);
+        let menu     = $(this).data('vistaFilemanAutocomplete').menu.element;
+        let menuData = $(this).data('menu');
         /*
         If menu has been expanded, set previous active item as active and
         scroll down to it.
@@ -555,7 +554,6 @@ fileman.showResults = function(results, EWD) {
 fileman.initAutocompletes = function(EWD) {
   // Initialize the file input widgets
   $('.fileman-autocomplete').filemanAutocomplete();
-  
   // Clear buttons
   $('.fileman-clear').click(function(e) {
     let input = $(this).parents('.form-group').find('.fileman-autocomplete');
@@ -574,4 +572,3 @@ fileman.initAutocompletes = function(EWD) {
 };
 
 // module.exports = fileman;
-
