@@ -49,6 +49,7 @@ fileman.prep = function(EWD) {
 };
 
 fileman.prepWidgets = function(EWD) {
+  // TODO Remove this. Apply namespaced extension to all instances.
   // jQuery Autocomplete Widget ~ https://api.jqueryui.com/autocomplete/
   // Extend the widget by redefining it
   $.widget('ui.autocomplete', $.ui.autocomplete, {
@@ -93,19 +94,22 @@ fileman.prepWidgets = function(EWD) {
     }
   });
   
-  // jQuery Autocomplete Widget ~ https://api.jqueryui.com/autocomplete/
-  // Extend the widget
+  /*
+  Extend the 
+  jQuery Autocomplete Widget ~ https://api.jqueryui.com/autocomplete/
+  */
   $.widget('vista.filemanAutocomplete', $.ui.autocomplete, {
     _create: function() {
       // Save the data from our custom data attribute
       let input      = this.element;
       let query      = JSON.parse(input.attr('data-fileman'));
       query.quantity = query.quantity || '8';
-      /* Clean up HTML so jQuery doesn't keep causing colisions as we
-      manipulate the HTML5 dataset */
+      /*
+      Clean up HTML so jQuery doesn't keep causing colisions as we manipulate
+      the HTML5 dataset.
+      */
       input.removeAttr('data-fileman');
       input.data('fileman', query);
-      
       // Now fetch, parse, & save complete Fileman query data
       let messageObj = {
         type: 'listDic',
@@ -121,33 +125,28 @@ fileman.prepWidgets = function(EWD) {
         input.data('fileman').file   = results.file;
         input.data('fileman').fields = results.fields;
       });
+      // Save placeholder menu data
+      let menuData = {
+        height: 0,
+        prevLastItemIndex: 0,
+        prevLastItemPosY: 0
+      };
+      input.data('menu', menuData);
       
-      /*
-      Pre-populate menu on focus. The widget focus event pertains to the items
-      in the menu/list, not the input itself. This also depends on minLength=0.
-      */
       input.focus(function() {
-        input.filemanAutocomplete('search');
-        
-        // Set up menu for expansion
-        let menu = input.data('vistaFilemanAutocomplete').menu.element;
-        menu.on( "menufocus", function( event, ui ) {
-          if ($(this).menu( "isLastItem" )) {
-            // Don't attempt to expand menu if the last search returned all 
-            // matches.
-            let menuQuantity  = menu[0].childElementCount;
-            let queryQuantity = input.data('fileman').quantity;
-            
-            if (menuQuantity >= queryQuantity) {
-              let menu = {activeItemIndex: ui.item.index()};
-              input.data('menu', menu);
-              
-              input.data('fileman').quantity = input.data('fileman').quantity * 2;
-
-              input.filemanAutocomplete('search');
-            }
-          }
-        });
+        /*
+        Pre-populate menu. The widget focus event pertains to the items in the
+        menu/list, not the input itself. This also depends on minLength=0.
+        */
+        if (!input.val()) {
+          input.filemanAutocomplete('search');
+        };
+        // Scroll down to input that has focus.
+        $('html, body').animate(
+          {scrollTop: input.parents('.form-group').offset().top},
+          '250',
+          'swing'
+        );
       });
       
       this._super();
@@ -176,8 +175,22 @@ fileman.prepWidgets = function(EWD) {
 
       return $(html).appendTo(ul);
     },
-    getId: function() {
-      return this.element.attr('id');
+    _resizeMenu: function() {
+      let input      = this.element;
+      let menu       = this.menu.element;
+      let menuHeight = input.data('menu').height;
+      
+      if (menuHeight) {
+        menu.height(menuHeight);
+      }
+      else {
+        menuHeight                = menu.height();
+        input.data('menu').height = menuHeight;
+
+        menu.height(menuHeight);
+      }
+      
+      this._super();
     },
     options: {
       minLength: 0,
@@ -185,39 +198,75 @@ fileman.prepWidgets = function(EWD) {
       classes: {
         'ui-autocomplete': 'fileman-autocomplete-menu'
       },
+      // Events
       focus: function(event, ui) {
-        // Handle menu item focus in _create()
+        // Set up menu for expansion
+        let input = $(this);
+        let menu = input.data('vistaFilemanAutocomplete').menu.element;
+        /*
+        This requries the API for the
+        jQuery Menu Widget ~ https://api.jqueryui.com/menu/
+        */
+        menu.one( "menufocus", function( event, ui ) {
+          if (menu.menu('isLastItem')) {
+            /*
+            Don't attempt to expand the menu if the last search returned all
+            matches.
+            */
+            let menuQuantity  = menu[0].childElementCount;
+            let queryQuantity = input.data('fileman').quantity;
+            
+            if (menuQuantity >= queryQuantity) {
+              /*
+              Save the index and y-position of the last item so it can be
+              highlighted and visible when the menu reopens.
+              */
+              menu.scrollTop(0);
+              input.data('menu').prevLastItemIndex = ui.item.index();
+              input.data('menu').prevLastItemPosY  = ui.item.position().top;
+              // Expand menu
+              input.data('fileman').quantity = input.data('fileman').quantity * 2;
+              input.filemanAutocomplete('search');
+            }
+          }
+        });
+        
         return false;
       },
       open: function(event, ui) {
+        let input      = $(this);
         let menu       = $(this).data('vistaFilemanAutocomplete').menu.element;
         let menuData   = $(this).data('menu');
-        
-        if (menuData && menuData.activeItemIndex) {
-          $(menu).menu( "focus", null, menu.find('li:eq(' + menuData.activeItemIndex + ')'));
-          
-          let posY = $(menu).find('li:eq(' + menuData.activeItemIndex + ')').offset().top;
-          $('html, body').animate(
-            {scrollTop: posY},
-            '250'
+        /*
+        If menu has been expanded, set previous active item as active and
+        scroll down to it.
+        */
+        if (menuData.prevLastItemIndex) {
+          $(menu).menu( "focus", null, menu.find('li:eq(' + menuData.prevLastItemIndex + ')'));
+          $(menu).animate(
+            {scrollTop: menuData.prevLastItemPosY},
+            '250',
+            'swing',
+            function() {
+              // Reset menu item data
+              input.data('menu').prevLastItemIndex = 0;
+              input.data('menu').prevLastItemPosY  = 0;
+            }
           );
         }
       },
       select: function(event, ui) {
         // Grab fields data from autocomplete element
         let fields = $(this).data('fileman').fields;
-
         // Attach record data to the element & show display field
         $(this).data('fileman').record = ui.item;
         $(this).val(ui.item[fields[1].key]);
-        
         // Enable "show" button
         $(this).parents('.form-group').find('.fileman-show').removeAttr('disabled');
 
         return false;
       },
       source: function(request, response) {
-        // input will be a jQuery UI object
         let input = this.element;
         
         // Get query properties from element's dataset
@@ -240,8 +289,8 @@ fileman.prepWidgets = function(EWD) {
             }
           });
         }
-        query.stringFrom = request.term;
-        query.stringPart = request.term;
+        query.stringFrom = request.term.toUpperCase();
+        query.stringPart = request.term.toUpperCase();
         
         let messageObj = {
           type: 'listDic',
