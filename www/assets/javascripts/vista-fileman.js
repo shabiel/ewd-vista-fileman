@@ -139,6 +139,9 @@ fileman.prepWidgets = function(EWD) {
             let queryQuantity = input.data('fileman').quantity;
             
             if (menuQuantity >= queryQuantity) {
+              let menu = {activeItemIndex: ui.item.index()};
+              input.data('menu', menu);
+              
               input.data('fileman').quantity = input.data('fileman').quantity * 2;
 
               input.filemanAutocomplete('search');
@@ -146,8 +149,6 @@ fileman.prepWidgets = function(EWD) {
           }
         });
       });
-      
-      
       
       this._super();
     },
@@ -187,6 +188,20 @@ fileman.prepWidgets = function(EWD) {
       focus: function(event, ui) {
         // Handle menu item focus in _create()
         return false;
+      },
+      open: function(event, ui) {
+        let menu       = $(this).data('vistaFilemanAutocomplete').menu.element;
+        let menuData   = $(this).data('menu');
+        
+        if (menuData && menuData.activeItemIndex) {
+          $(menu).menu( "focus", null, menu.find('li:eq(' + menuData.activeItemIndex + ')'));
+          
+          let posY = $(menu).find('li:eq(' + menuData.activeItemIndex + ')').offset().top;
+          $('html, body').animate(
+            {scrollTop: posY},
+            '250'
+          );
+        }
       },
       select: function(event, ui) {
         // Grab fields data from autocomplete element
