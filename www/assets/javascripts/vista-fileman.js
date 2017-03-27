@@ -260,8 +260,6 @@ fileman.prepWidgets = function(EWD) {
         // Attach record data to the element & show display field
         $(this).data('fileman').record = ui.item;
         $(this).val(ui.item[fields[1].key]);
-        // Enable "show" button
-        $(this).parents('.form-group').find('.fileman-show').removeAttr('disabled');
 
         return false;
       },
@@ -554,7 +552,7 @@ fileman.showResults = function(results, EWD) {
 fileman.initAutocompletes = function(EWD) {
   // Initialize the file input widgets
   $('.fileman-autocomplete').filemanAutocomplete();
-  // Clear buttons
+  // Set up clear buttons
   $('.fileman-clear').click(function(e) {
     let input = $(this).parents('.form-group').find('.fileman-autocomplete');
     delete input.data('fileman').record;
@@ -562,13 +560,56 @@ fileman.initAutocompletes = function(EWD) {
     
     $(this).parents('.form-group').find('.fileman-show').attr('disabled', 'disabled');
   });
-  // Show buttons
+  // Set up show buttons
   $('.fileman-show').click(function(e) {
     let data = $(this).parents('.form-group').find('.fileman-autocomplete').data('fileman').record;
     
     console.log('Record:');
     console.log(data);
   });
+  // Enable show buttons
+  $('.fileman-autocomplete').on('filemanautocompleteselect', function(event, ui) {
+    $(this).parents('.form-group').find('.fileman-show').removeAttr('disabled');
+  });
+  // Handle blur events
+  $('.fileman-autocomplete').on('filemanautocompletechange', function(event, ui) {
+    let input = $(this);
+    
+    // Only take action if a record has been selected
+    if (input.data('fileman').record) {
+      // Treat deletion like clicking the clear button.
+      if (input.val() == '') {
+        input.parents('.form-group').find('.fileman-clear').click();
+      }
+      // Treat other changes like accidents and restore the input value
+      else {
+        let displayFieldKey = input.data('fileman').fields[1].key;
+        let recordValue     = input.data('fileman').record[displayFieldKey];
+        
+        if (input.val() != recordValue) {
+          input.val(recordValue);
+        }
+      }
+    }
+  });
+  // Set up add buttons
+  $('.fileman-add').click(function(e) {
+    let input = $(this).parents('.form-group').find('.fileman-autocomplete');
+    let file  = input.data('fileman').file.number;
+    
+    fileman.laygo(file, EWD);
+  });
 };
+
+fileman.laygo = function(fileNumber, EWD) {
+  let messageObj = {
+    service: 'ewd-vista-fileman',
+    type: 'laygo',
+    params: {file: fileNumber}
+  };
+  EWD.send(messageObj, function(responseObj) {
+    toastr['info'](responseObj.message.permission.toString(), 'Permission:');
+  });
+}
 
 // module.exports = fileman;
