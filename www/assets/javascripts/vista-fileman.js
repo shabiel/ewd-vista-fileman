@@ -8,26 +8,13 @@ fileman.prep = function(EWD) {
     fileman.prepWidgets(EWD);
     
     // Set up app menu items
-    $('body').on('click', '#option-fileman-dev', function() {
+    $('body').on('click', '#option-fileman-list', function() {
       // Clear the page
       $('#main-content').html('');
       
       let params = {
         service: 'ewd-vista-fileman',
-        name: 'dev.html',
-        targetId: 'main-content',
-      };
-      EWD.getFragment(params, function() {
-        fileman.initAutocompletes(EWD);
-      });
-    });
-    $('body').on('click', '#option-fileman-list-dic', function() {
-      // Clear the page
-      $('#main-content').html('');
-      
-      let params = {
-        service: 'ewd-vista-fileman',
-        name: 'list-dic.html',
+        name: 'list.html',
         targetId: 'main-content',
       };
       EWD.getFragment(params, function() {
@@ -37,14 +24,41 @@ fileman.prep = function(EWD) {
         fileman.prepSubmitButton(EWD);
       });
     });
+    $('body').on('click', '#option-fileman-find', function() {
+      // Clear the page
+      $('#main-content').html('');
+      
+      let params = {
+        service: 'ewd-vista-fileman',
+        name: 'find.html',
+        targetId: 'main-content',
+      };
+      EWD.getFragment(params, function() {
+        fileman.initAutocompletes(EWD);
+      });
+    });
+    $('body').on('click', '#option-fileman-validate', function() {
+      // Clear the page
+      $('#main-content').html('');
+      
+      let params = {
+        service: 'ewd-vista-fileman',
+        name: 'validate.html',
+        targetId: 'main-content',
+      };
+      EWD.getFragment(params, function() {
+        // 
+      });
+    });
     
     // Add to app feature/option menu.
     $('#app-menu #app-name').text('Fileman');
-    $('#app-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-dev">Dev</a></li>');
-    $('#app-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-list-dic">LIST^DIC</a></li>');
+    $('#app-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-list">List Records</a></li>');
+    $('#app-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-find">Find Record</a></li>');
+    $('#app-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-validate">Validate Field</a></li>');
     $('#app-menu').removeClass('invisible');
     
-    $('#option-fileman-dev').click();
+    $('#option-fileman-list').click();
   });
 };
 
