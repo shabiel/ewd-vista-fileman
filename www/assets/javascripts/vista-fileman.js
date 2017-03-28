@@ -86,6 +86,10 @@ fileman.prepWidgets = function(EWD) {
       return $(html).appendTo(ul);
     },
     options: {
+      classes: {
+        'ui-autocomplete': 'fileman-autocomplete-menu'
+      },
+      // Events
       focus: function(event, ui) {
         // Grab fields data from autocomplete element
         let fields = $(this).data('fields');
