@@ -130,7 +130,8 @@ fileman.prepWidgets = function(EWD) {
       input.data('fileman', query);
       // Now fetch, parse, & save complete Fileman query data
       let messageObj = {
-        type: 'listDic',
+        service: 'ewd-vista-fileman',
+        type: 'filemanDic',
         params: {query}
       };
       EWD.send(messageObj, function(responseObj) {
@@ -308,7 +309,8 @@ fileman.prepWidgets = function(EWD) {
         query.stringPart = request.term.toUpperCase();
         
         let messageObj = {
-          type: 'listDic',
+          service: 'ewd-vista-fileman',
+          type: 'filemanDic',
           params: {query}
         };
         EWD.send(messageObj, function(responseObj) {
@@ -361,7 +363,8 @@ fileman.selectFile = function(EWD) {
       let input = this.element;
 
       let messageObj = {
-        type: 'listDic',
+        service: 'ewd-vista-fileman',
+        type: 'filemanDic',
         params: {
           query: {
             file: {number: '1'},
@@ -516,7 +519,8 @@ fileman.prepClearButton = function() {
 fileman.prepSubmitButton = function(EWD) {
   $('#query-submit-btn').on('click', function() {
     let messageObj = {
-      type: 'listDic',
+      service: 'ewd-vista-fileman',
+      type: 'filemanDic',
       params: {
         query: {
           file: {number: $('#query-params').data('file').number},
