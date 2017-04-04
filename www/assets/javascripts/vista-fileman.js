@@ -52,11 +52,11 @@ fileman.prep = function(EWD) {
     });
     
     // Add to app feature/option menu.
-    $('#app-menu #app-name').text('Fileman');
-    $('#app-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-list">List Records</a></li>');
-    $('#app-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-find">Find Record</a></li>');
-    $('#app-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-validate">Validate Field</a></li>');
-    $('#app-menu').removeClass('invisible');
+    $('#options-menu #app-name').text('Fileman');
+    $('#options-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-list">List Records</a></li>');
+    $('#options-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-find">Find Record</a></li>');
+    $('#options-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-validate">Validate Field</a></li>');
+    $('#options-menu').removeClass('invisible');
     
     $('#option-fileman-list').click();
   });
