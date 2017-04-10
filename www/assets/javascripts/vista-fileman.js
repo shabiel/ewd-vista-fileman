@@ -47,7 +47,9 @@ fileman.prep = function(EWD) {
         targetId: 'main-content',
       };
       EWD.getFragment(params, function() {
-        // 
+        // fileman.initAutocompletes(EWD);
+        
+        fileman.prepValidation(EWD);
       });
     });
     
@@ -58,8 +60,10 @@ fileman.prep = function(EWD) {
     $('#options-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-validate">Validate Field</a></li>');
     $('#options-menu').removeClass('invisible');
     
-    $('#option-fileman-list').click();
+    $('#option-fileman-validate').click();
   });
+  
+  $('#app-fileman').click();
 };
 
 fileman.prepWidgets = function(EWD) {
@@ -138,7 +142,7 @@ fileman.prepWidgets = function(EWD) {
         let results = responseObj.message.results;
         
         if (results.error) {
-          toastr['error'](results.error.msg, ('Fileman error code: ' + results.error.code));
+          toastr['error'](results.error.message, ('Fileman error code: ' + results.error.code));
         }
         
         input.data('fileman').file   = results.file;
@@ -317,7 +321,7 @@ fileman.prepWidgets = function(EWD) {
           let results = responseObj.message.results;
           
           if (results.error) {
-            toastr['error'](results.error.msg, ('Fileman error code: ' + results.error.code));
+            toastr['error'](results.error.message, ('Fileman error code: ' + results.error.code));
           }
 
           response(results.records);
@@ -379,7 +383,7 @@ fileman.selectFile = function(EWD) {
         let results = responseObj.message.results;
 
         if (results.error) {
-          toastr['error'](results.error.msg, results.error.code);
+          toastr['error'](results.error.message, results.error.code);
         }
 
         //  Create a pseudo-field for this special input to show file number
@@ -463,7 +467,7 @@ fileman.selectField = function(EWD) {
         let records = [];
         
         if (results.error) {
-          toastr["error"](results.error.msg, results.error.code);
+          toastr["error"](results.error.message, results.error.code);
         }
         
         // We've overriden auto-matching, so only return matching records
@@ -534,7 +538,7 @@ fileman.prepSubmitButton = function(EWD) {
       let results = responseObj.message.results;
       
       if (results.error) {
-        toastr["error"](results.error.msg, results.error.code);
+        toastr["error"](results.error.message, results.error.code);
       }
       
       fileman.showResults(results, EWD);
@@ -627,11 +631,64 @@ fileman.laygo = function(fileNumber, EWD) {
   let messageObj = {
     service: 'ewd-vista-fileman',
     type: 'laygo',
-    params: {file: fileNumber}
+    params: {
+      query: {
+        file: fileNumber
+      }
+    }
   };
   EWD.send(messageObj, function(responseObj) {
-    toastr['info'](responseObj.message.permission.toString(), 'Permission:');
+    toastr['info'](responseObj.message.results.laygo.toString(), 'Permission:');
   });
-}
+};
+
+fileman.prepValidation = function(EWD) {
+  let input = $('.fileman-validate').parents('.form-group').find('.fileman-laygo');
+  
+  let query = Object.assign({}, input.data('fileman'));
+  // TODO Separate file and field info into a function separate from filemanDIC()
+  query.quantity = "1"
+  /*
+  Clean up HTML so jQuery doesn't keep causing colisions as we manipulate
+  the HTML5 dataset.
+  */
+  input.removeAttr('data-fileman');
+  input.data('fileman', query);
+  // Now fetch, parse, & save complete Fileman query data
+  let messageObj = {
+    service: 'ewd-vista-fileman',
+    type: 'filemanDic',
+    params: {query: query}
+  };
+  EWD.send(messageObj, function(responseObj) {
+    let results = responseObj.message.results;
+
+    if (results.error) {
+      toastr['error'](results.error.message, ('Fileman error code: ' + results.error.code));
+    }
+
+    input.data('fileman').file   = results.file;
+    input.data('fileman').fields = results.fields;
+  });
+  
+  // Set up validate buttons
+  $('.fileman-validate').click(function(e) {
+    let input   = $(this).parents('.form-group').find('.fileman-laygo');
+    let query   = Object.assign({}, input.data('fileman'));
+    query.iens  = '+1,';
+    query.value = input.val();
+    
+    messageObj = {
+      service: 'ewd-vista-fileman',
+      type: 'validateField',
+      params: {query: query}
+    };
+    EWD.send(messageObj, function(responseObj) {
+      let results = responseObj.message.results;
+      
+      console.log(results);
+    });
+  });
+};
 
 // module.exports = fileman;

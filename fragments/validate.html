@@ -1,10 +1,14 @@
 <div id="fileman" class="form-group-container">
   <h2>Validate A Field</h2>
   
-  <div class="form-group">
-    <label for="file-200">File: 200 / Field: Name</label>
-    <input id="file-200" class="form-control fileman-autocomplete" type="text" placeholder="Name" 
-      data-fileman='{"file": {"number": "200"}}'>
+  <div class="form-group has-warning">
+    <label for="file-200" class="form-control-label">File: 200 / Field: Name</label>
+    
+    <input id="file-200" class="fileman-laygo form-control form-control-warning" 
+      type="text" placeholder="Name" data-fileman='{"file": {"number": "200"}, 
+      "fields": [{"number": ".01"}]}'>
+      
+    <div class="form-control-feedback"></div>
     
     <button class="btn btn-primary fileman-validate">Validate</button>
   </div>
