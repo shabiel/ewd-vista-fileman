@@ -643,7 +643,7 @@ fileman.laygo = function(fileNumber, EWD) {
 };
 
 fileman.prepValidation = function(EWD) {
-  let input = $('.fileman-validate').parents('.form-group').find('.fileman-laygo');
+  let input = $('.fileman-laygo');
   
   let query = Object.assign({}, input.data('fileman'));
   // TODO Separate file and field info into a function separate from filemanDIC()
@@ -669,24 +669,39 @@ fileman.prepValidation = function(EWD) {
 
     input.data('fileman').file   = results.file;
     input.data('fileman').fields = results.fields;
-  });
-  
-  // Set up validate buttons
-  $('.fileman-validate').click(function(e) {
-    let input   = $(this).parents('.form-group').find('.fileman-laygo');
-    let query   = Object.assign({}, input.data('fileman'));
-    query.iens  = '+1,';
-    query.value = input.val();
     
-    messageObj = {
-      service: 'ewd-vista-fileman',
-      type: 'validateField',
-      params: {query: query}
-    };
-    EWD.send(messageObj, function(responseObj) {
-      let results = responseObj.message.results;
+    // Now set up validation
+    $('.fileman-validate').click(function(e) {
+      let formGroup    = input.parents('.form-group');
+      let errorElement = formGroup.find('.form-control-feedback');
       
-      console.log(results);
+      let query   = Object.assign({}, input.data('fileman'));
+      query.iens  = '+1,';
+      query.value = input.val();
+
+      messageObj = {
+        service: 'ewd-vista-fileman',
+        type: 'validateField',
+        params: {query: query}
+      };
+      EWD.send(messageObj, function(responseObj) {
+        let results = responseObj.message.results;
+        
+        if (results.valid) {
+          errorElement.html('');
+          formGroup.removeClass('has-error');
+          
+          toastr['success']('Valid entry!');
+        }
+        if (!results.valid) {
+          let message = results.error.help || results.error.message;
+          
+          errorElement.html(message);
+          formGroup.addClass('has-error');
+          // Boostrap 4
+          // formGroup.addClass('has-danger');
+        }
+      });
     });
   });
 };
