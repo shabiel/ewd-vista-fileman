@@ -1,23 +1,31 @@
-<div id="fileman" class="form-group-container">
+<div id="fileman">
   <h2>Find A Record</h2>
   
-  <div class="form-group">
-    <label for="file-200" class="form-control-label">File 200</label>
-    <input id="file-200" class="form-control fileman-autocomplete" type="text" placeholder="Record" 
-      data-fileman='{"file": {"number": "200"}}'>
+  <form id="file-200-find" role="form" novalidate>
+    <div class="form-group">
+      <label for="file-200" class="control-label">File 200</label>
+      
+      <input id="file-200" class="form-control fileman-autocomplete" type="text" 
+        placeholder="Name" data-fileman='{"file": {"number": "200"}}'>
     
-    <button class="btn btn-danger fileman-clear">Clear</button>
-    <button class="btn btn-warning fileman-add">Add</button>
-    <button class="btn btn-success fileman-show" disabled>Show</button>
-  </div>
+      <div class="form-control-feedback"></div>
+    </div>
+    
+    <button class="btn btn-warning fm-btn-add">Add</button>
+    <button class="btn btn-primary fm-btn-show" disabled>Show</button>
+  </form>
   
-  <div class="form-group">
-    <label for="file-2" class="form-control-label">File 2</label>
-    <input id="file-2" class="form-control fileman-autocomplete" type="text" placeholder="Record" 
-      data-fileman='{"file": {"number": "2"}, "quantity": "4"}'>
+  <form id="file-2-find" role="form" novalidate>
+    <div class="form-group">
+      <label for="file-2" class="control-label">File 2</label>
+      
+      <input id="file-2" class="form-control fileman-autocomplete" type="text" 
+        placeholder="Name" data-fileman='{"file": {"number": "2"}}'>
     
-    <button class="btn btn-danger fileman-clear">Clear</button>
-    <button class="btn btn-warning fileman-add">Add</button>
-    <button class="btn btn-success fileman-show" disabled>Show</button>
-  </div>
+      <div class="form-control-feedback"></div>
+    </div>
+    
+    <button class="btn btn-warning fm-btn-add">Add</button>
+    <button class="btn btn-primary fm-btn-show" disabled>Show</button>
+  </form>
 </div>

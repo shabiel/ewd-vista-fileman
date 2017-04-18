@@ -34,7 +34,7 @@ fileman.prep = function(EWD) {
         targetId: 'main-content',
       };
       EWD.getFragment(params, function() {
-        fileman.initAutocompletes(EWD);
+        fileman.prepAutocompletes(EWD);
       });
     });
     $('body').on('click', '#option-fileman-validate', function() {
@@ -47,7 +47,7 @@ fileman.prep = function(EWD) {
         targetId: 'main-content',
       };
       EWD.getFragment(params, function() {
-        // fileman.initAutocompletes(EWD);
+        // fileman.prepAutocompletes(EWD);
         
         fileman.prepValidation(EWD);
       });
@@ -60,7 +60,7 @@ fileman.prep = function(EWD) {
     $('#options-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-validate">Validate Field</a></li>');
     $('#options-menu').removeClass('invisible');
     
-    $('#option-fileman-validate').click();
+    $('#option-fileman-find').click();
   });
   
   $('#app-fileman').click();
@@ -173,7 +173,7 @@ fileman.prepWidgets = function(EWD) {
       });
       
       this._super();
-    },
+    }, // End ~ _create()
     _renderItem: function(ul, item) {
       // Grab fields data from autocomplete element
       let fields = this.element.data('fileman').fields;
@@ -197,7 +197,7 @@ fileman.prepWidgets = function(EWD) {
       html       = html + '</li>';
 
       return $(html).appendTo(ul);
-    },
+    }, // End ~ _renderItem()
     _resizeMenu: function() {
       let input      = this.element;
       let menu       = this.menu.element;
@@ -213,7 +213,7 @@ fileman.prepWidgets = function(EWD) {
       }
       
       this._super();
-    },
+    }, // End ~ _resizeMenu()
     options: {
       minLength: 0,
       delay: 200,
@@ -221,6 +221,30 @@ fileman.prepWidgets = function(EWD) {
         'ui-autocomplete': 'fileman-autocomplete-menu'
       },
       // Events
+      // 
+      // Blur, if value has changed
+      change: function(event, ui) {
+        let input = $(this);
+        
+        // Only take action if a record has been selected
+        if (input.data('fileman').record) {
+          // Delete the saved record if the input is empty
+          if (input.val() == '') {
+            delete input.data('fileman').record;
+            input.val('');
+          }
+          // Treat other changes like accidents and restore the input value
+          else {
+            let displayFieldKey   = input.data('fileman').fields[1].key;
+            let displayFieldValue = input.data('fileman').record[displayFieldKey];
+        
+            if (input.val() != displayFieldValue) {
+              input.val(displayFieldValue);
+            }
+          }
+        }
+      }, // End ~ change
+      // Focus shifts to a menu item
       focus: function(event, ui) {
         // Set up menu for expansion
         let input = $(this);
@@ -254,7 +278,7 @@ fileman.prepWidgets = function(EWD) {
         });
         
         return false;
-      },
+      }, // End ~ focus
       open: function(event, ui) {
         let input    = $(this);
         let menu     = $(this).data('vistaFilemanAutocomplete').menu.element;
@@ -276,7 +300,7 @@ fileman.prepWidgets = function(EWD) {
             }
           );
         }
-      },
+      }, // End ~ open
       select: function(event, ui) {
         // Grab fields data from autocomplete element
         let fields = $(this).data('fileman').fields;
@@ -286,6 +310,7 @@ fileman.prepWidgets = function(EWD) {
 
         return false;
       },
+      // End ~ events
       source: function(request, response) {
         let input = this.element;
         
@@ -326,8 +351,8 @@ fileman.prepWidgets = function(EWD) {
 
           response(results.records);
         });
-      }
-    }
+      } // End ~ source
+    } // End ~ options
   }); // End ~ $.widget('vista.filemanAutocomplete', $.ui.autocomplete, {
 };
 
@@ -575,71 +600,70 @@ fileman.showResults = function(results, EWD) {
   $('#fileman').append(html);
 };
 
-fileman.initAutocompletes = function(EWD) {
+fileman.prepAutocompletes = function(EWD) {
   // Initialize the file input widgets
   $('.fileman-autocomplete').filemanAutocomplete();
-  // Set up clear buttons
-  $('.fileman-clear').click(function(e) {
-    let input = $(this).parents('.form-group').find('.fileman-autocomplete');
-    delete input.data('fileman').record;
-    input.val('');
-    
-    $(this).parents('.form-group').find('.fileman-show').attr('disabled', 'disabled');
-  });
+  
   // Set up show buttons
-  $('.fileman-show').click(function(e) {
-    let data = $(this).parents('.form-group').find('.fileman-autocomplete').data('fileman').record;
+  $('.fm-btn-show').click(function() {
+    let data = $(this).parents('form').find('.fileman-autocomplete').data('fileman').record;
     
     console.log('Record:');
     console.log(data);
+    
+    return false;
   });
   // Enable show buttons
   $('.fileman-autocomplete').on('filemanautocompleteselect', function(event, ui) {
-    $(this).parents('.form-group').find('.fileman-show').removeAttr('disabled');
+    $(this).parents('form').find('.fm-btn-show').removeAttr('disabled');
   });
-  // Handle blur events
+  // Disable show buttons
   $('.fileman-autocomplete').on('filemanautocompletechange', function(event, ui) {
-    let input = $(this);
-    
-    // Only take action if a record has been selected
-    if (input.data('fileman').record) {
-      // Treat deletion like clicking the clear button.
-      if (input.val() == '') {
-        input.parents('.form-group').find('.fileman-clear').click();
-      }
-      // Treat other changes like accidents and restore the input value
-      else {
-        let displayFieldKey = input.data('fileman').fields[1].key;
-        let recordValue     = input.data('fileman').record[displayFieldKey];
-        
-        if (input.val() != recordValue) {
-          input.val(recordValue);
+    if (!$(this).val()) {
+      $(this).parents('form').find('.fm-btn-show').attr('disabled', 'disabled');
+    }
+  });
+  
+  // Set up add buttons
+  $('.fm-btn-add').click(function() {
+    let input = $(this).parents('form').find('.fileman-autocomplete');
+    let file  = input.data('fileman').file.number;
+
+    let messageObj = {
+      service: 'ewd-vista-fileman',
+      type: 'checkLaygo',
+      params: {
+        query: {
+          file: file
         }
       }
-    }
-  });
-  // Set up add buttons
-  $('.fileman-add').click(function(e) {
-    let input = $(this).parents('.form-group').find('.fileman-autocomplete');
-    let file  = input.data('fileman').file.number;
+    };
+    EWD.send(messageObj, function(responseObj) {
+      let permission = responseObj.message.results.laygo;
+
+      if (permission) {
+        let params = {
+          service: 'ewd-vista-fileman',
+          name: 'add.html',
+          targetId: 'modal-window'
+        };
+        EWD.getFragment(params, function() {
+          $('#modal-window').modal('show');
+          
+          fileman.prepValidation(EWD);
+        });
+      }
+      else {
+        toastr['warning']('You don\'t have LAYGO permissions for this file!');
+      }
+    });
     
-    fileman.laygo(file, EWD);
+    return false;
   });
-};
+}; // End ~ fileman.prepAutocompletes
 
 fileman.laygo = function(fileNumber, EWD) {
-  let messageObj = {
-    service: 'ewd-vista-fileman',
-    type: 'laygo',
-    params: {
-      query: {
-        file: fileNumber
-      }
-    }
-  };
-  EWD.send(messageObj, function(responseObj) {
-    toastr['info'](responseObj.message.results.laygo.toString(), 'Permission:');
-  });
+  
 };
 
 fileman.prepValidation = function(EWD) {
@@ -671,7 +695,7 @@ fileman.prepValidation = function(EWD) {
     input.data('fileman').fields = results.fields;
     
     // Now set up validation
-    $('.fileman-validate').click(function(e) {
+    $('.fm-btn-validate').click(function(e) {
       let formGroup    = input.parents('.form-group');
       let errorElement = formGroup.find('.form-control-feedback');
       
@@ -702,7 +726,9 @@ fileman.prepValidation = function(EWD) {
           // formGroup.addClass('has-danger');
         }
       });
-    });
+      
+      return false;
+    }); // End ~ $('.fm-btn-validate').click()
   });
 };
 
