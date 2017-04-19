@@ -4,14 +4,14 @@ var fileman = {};
 fileman.prep = function(EWD) {
   $('body').on('click', '#app-fileman', function() {
     vista.switchApp();
-    
+
     fileman.prepWidgets(EWD);
-    
+
     // Set up app menu items
     $('body').on('click', '#option-fileman-list', function() {
       // Clear the page
       $('#main-content').html('');
-      
+
       let params = {
         service: 'ewd-vista-fileman',
         name: 'list.html',
@@ -27,7 +27,7 @@ fileman.prep = function(EWD) {
     $('body').on('click', '#option-fileman-find', function() {
       // Clear the page
       $('#main-content').html('');
-      
+
       let params = {
         service: 'ewd-vista-fileman',
         name: 'find.html',
@@ -40,7 +40,7 @@ fileman.prep = function(EWD) {
     $('body').on('click', '#option-fileman-validate', function() {
       // Clear the page
       $('#main-content').html('');
-      
+
       let params = {
         service: 'ewd-vista-fileman',
         name: 'validate.html',
@@ -48,21 +48,21 @@ fileman.prep = function(EWD) {
       };
       EWD.getFragment(params, function() {
         // fileman.prepAutocompletes(EWD);
-        
+
         fileman.prepValidation(EWD);
       });
     });
-    
+
     // Add to app feature/option menu.
     $('#options-menu #app-name').text('Fileman');
     $('#options-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-list">List Records</a></li>');
     $('#options-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-find">Find Record</a></li>');
     $('#options-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-validate">Validate Field</a></li>');
     $('#options-menu').removeClass('invisible');
-    
+
     $('#option-fileman-find').click();
   });
-  
+
   $('#app-fileman').click();
 };
 
@@ -115,9 +115,9 @@ fileman.prepWidgets = function(EWD) {
       }
     }
   });
-  
+
   /*
-  Extend the 
+  Extend the
   jQuery Autocomplete Widget ~ https://api.jqueryui.com/autocomplete/
   */
   $.widget('vista.filemanAutocomplete', $.ui.autocomplete, {
@@ -140,11 +140,11 @@ fileman.prepWidgets = function(EWD) {
       };
       EWD.send(messageObj, function(responseObj) {
         let results = responseObj.message.results;
-        
+
         if (results.error) {
           toastr['error'](results.error.message, ('Fileman error code: ' + results.error.code));
         }
-        
+
         input.data('fileman').file   = results.file;
         input.data('fileman').fields = results.fields;
       });
@@ -155,7 +155,7 @@ fileman.prepWidgets = function(EWD) {
         prevLastItemPosY: 0
       };
       input.data('menu', menuData);
-      
+
       input.focus(function() {
         /*
         Pre-populate menu. The widget focus event pertains to the items in the
@@ -163,7 +163,7 @@ fileman.prepWidgets = function(EWD) {
         */
         if (!input.val()) {
           input.filemanAutocomplete('search');
-        };
+        }
         // Scroll down to input that has focus.
         $('html, body').animate(
           {scrollTop: input.parents('.form-group').offset().top},
@@ -171,13 +171,13 @@ fileman.prepWidgets = function(EWD) {
           'swing'
         );
       });
-      
+
       this._super();
     }, // End ~ _create()
     _renderItem: function(ul, item) {
       // Grab fields data from autocomplete element
       let fields = this.element.data('fileman').fields;
-            
+
       let html   = '';
       html       = html + '<li>';
       html       = html + '<span>' + item[fields[1].key] + '</span>';
@@ -202,7 +202,7 @@ fileman.prepWidgets = function(EWD) {
       let input      = this.element;
       let menu       = this.menu.element;
       let menuHeight = input.data('menu').height;
-      
+
       if (menuHeight) {
         menu.height(menuHeight);
       }
@@ -211,7 +211,7 @@ fileman.prepWidgets = function(EWD) {
         input.data('menu').height = menuHeight;
         menu.height(menuHeight);
       }
-      
+
       this._super();
     }, // End ~ _resizeMenu()
     options: {
@@ -221,11 +221,11 @@ fileman.prepWidgets = function(EWD) {
         'ui-autocomplete': 'fileman-autocomplete-menu'
       },
       // Events
-      // 
+      //
       // Blur, if value has changed
       change: function(event, ui) {
         let input = $(this);
-        
+
         // Only take action if a record has been selected
         if (input.data('fileman').record) {
           // Delete the saved record if the input is empty
@@ -237,7 +237,7 @@ fileman.prepWidgets = function(EWD) {
           else {
             let displayFieldKey   = input.data('fileman').fields[1].key;
             let displayFieldValue = input.data('fileman').record[displayFieldKey];
-        
+
             if (input.val() != displayFieldValue) {
               input.val(displayFieldValue);
             }
@@ -253,7 +253,7 @@ fileman.prepWidgets = function(EWD) {
         This requries the API for the
         jQuery Menu Widget ~ https://api.jqueryui.com/menu/
         */
-        menu.one( "menufocus", function( event, ui ) {
+        menu.one( 'menufocus', function( event, ui ) {
           if (menu.menu('isLastItem')) {
             /*
             Don't attempt to expand the menu if the last search returned all
@@ -261,7 +261,7 @@ fileman.prepWidgets = function(EWD) {
             */
             let menuQuantity  = menu[0].childElementCount;
             let queryQuantity = input.data('fileman').quantity;
-            
+
             if (menuQuantity >= queryQuantity) {
               /*
               Save the index and y-position of the last item so it can be
@@ -276,7 +276,7 @@ fileman.prepWidgets = function(EWD) {
             }
           }
         });
-        
+
         return false;
       }, // End ~ focus
       open: function(event, ui) {
@@ -288,7 +288,7 @@ fileman.prepWidgets = function(EWD) {
         scroll down to it.
         */
         if (menuData.prevLastItemIndex) {
-          $(menu).menu( "focus", null, menu.find('li:eq(' + menuData.prevLastItemIndex + ')'));
+          $(menu).menu( 'focus', null, menu.find('li:eq(' + menuData.prevLastItemIndex + ')'));
           $(menu).animate(
             {scrollTop: menuData.prevLastItemPosY},
             '250',
@@ -313,7 +313,7 @@ fileman.prepWidgets = function(EWD) {
       // End ~ events
       source: function(request, response) {
         let input = this.element;
-        
+
         // Get query properties from element's dataset
         let query        = Object.assign({}, $(input).data('fileman'));
         if (query.fields && Array.isArray(query.fields) && query.fields.length) {
@@ -336,7 +336,7 @@ fileman.prepWidgets = function(EWD) {
         }
         query.stringFrom = request.term.toUpperCase();
         query.stringPart = request.term.toUpperCase();
-        
+
         let messageObj = {
           service: 'ewd-vista-fileman',
           type: 'filemanDic',
@@ -344,7 +344,7 @@ fileman.prepWidgets = function(EWD) {
         };
         EWD.send(messageObj, function(responseObj) {
           let results = responseObj.message.results;
-          
+
           if (results.error) {
             toastr['error'](results.error.message, ('Fileman error code: ' + results.error.code));
           }
@@ -369,12 +369,12 @@ fileman.selectFile = function(EWD) {
         },
         fields: [],
       };
-    
+
       $('#query-params').data(query);
-      
+
       $('#query-field').removeAttr('disabled');
       $('#query-field-btn').removeAttr('disabled');
-      
+
       $('#query-file').attr('disabled', 'disabled');
       $('#query-file-btn').attr('disabled', 'disabled');
     }
@@ -382,7 +382,7 @@ fileman.selectFile = function(EWD) {
       toastr['warning']('You must select a file');
     }
   });
-  
+
   // Set up the file input widget
   $('#query-file').autocomplete({
     minLength: 0,
@@ -446,7 +446,7 @@ fileman.selectField = function(EWD) {
       let fields = $('#query-params').data('fields');
       fields.push(field);
       $('#query-params').data('fields', fields);
-      
+
       // Update displayed list of fields
       let fieldsString = $('#query-params').val();
       if (fieldsString) {
@@ -454,11 +454,11 @@ fileman.selectField = function(EWD) {
       }
       fieldsString     = fieldsString + field.name;
       $('#query-params').val(fieldsString);
-      
+
       // Clear input
       $('#query-field').removeData('record');
       $('#query-field').val('');
-      
+
       // Enable submit button
       $('#query-submit-btn').removeAttr('disabled');
     }
@@ -466,7 +466,7 @@ fileman.selectField = function(EWD) {
       toastr['warning']('You must select a field');
     }
   });
-  
+
   // Set up the file input widget
   $('#query-field').autocomplete({
     minLength: 0,
@@ -474,7 +474,7 @@ fileman.selectField = function(EWD) {
     source: function(request, response) {
       // input will be a jQuery UI object
       let input = this.element;
-      
+
       let messageObj = {
         service: 'ewd-vista-fileman',
         type: 'getFields',
@@ -490,11 +490,11 @@ fileman.selectField = function(EWD) {
       EWD.send(messageObj, function(responseObj) {
         let results = responseObj.message.results;
         let records = [];
-        
+
         if (results.error) {
-          toastr["error"](results.error.message, results.error.code);
+          toastr['error'](results.error.message, results.error.code);
         }
-        
+
         // We've overriden auto-matching, so only return matching records
         // First include records matching at beginning of name
         results.records.forEach(function(record) {
@@ -511,13 +511,13 @@ fileman.selectField = function(EWD) {
         });
         // Limit results
         records = records.slice(0,8);
-        
+
         // Attach file & fields data to the HTML element so the menu can use it
         if (!input.data('fields')) {
           input.data('file', results.file);
           input.data('fields', results.fields);
         }
-        
+
         response(records);
       });
     }
@@ -527,20 +527,20 @@ fileman.selectField = function(EWD) {
 fileman.prepClearButton = function() {
   $('#query-clear-btn').on('click', function() {
     $('#query-submit-btn').attr('disabled', 'disabled');
-    
+
     $('#query-params').removeData(['file', 'fields']);
     $('#query-params').val('');
-    
+
     $('#query-field').attr('disabled', 'disabled');
     $('#query-field').removeData(['file', 'fields', 'record']);
     $('#query-field-btn').val('');
-    
-    
+
+
     $('#query-file').removeData(['record']);
     $('#query-file').val('');
     $('#query-file-btn').removeAttr('disabled');
     $('#query-file').removeAttr('disabled');
-    
+
     $('#fileman-results').remove();
   });
 };
@@ -561,11 +561,11 @@ fileman.prepSubmitButton = function(EWD) {
     };
     EWD.send(messageObj, function(responseObj) {
       let results = responseObj.message.results;
-      
+
       if (results.error) {
-        toastr["error"](results.error.message, results.error.code);
+        toastr['error'](results.error.message, results.error.code);
       }
-      
+
       fileman.showResults(results, EWD);
     });
   });
@@ -596,21 +596,21 @@ fileman.showResults = function(results, EWD) {
   html = html + '</table>';
   html = html + '</div>';
   html = html + '</div>';
-  
+
   $('#fileman').append(html);
 };
 
 fileman.prepAutocompletes = function(EWD) {
   // Initialize the file input widgets
   $('.fileman-autocomplete').filemanAutocomplete();
-  
+
   // Set up show buttons
   $('.fm-btn-show').click(function() {
     let data = $(this).parents('form').find('.fileman-autocomplete').data('fileman').record;
-    
+
     console.log('Record:');
     console.log(data);
-    
+
     return false;
   });
   // Enable show buttons
@@ -623,7 +623,7 @@ fileman.prepAutocompletes = function(EWD) {
       $(this).parents('form').find('.fm-btn-show').attr('disabled', 'disabled');
     }
   });
-  
+
   // Set up add buttons
   $('.fm-btn-add').click(function() {
     let input = $(this).parents('form').find('.fileman-autocomplete');
@@ -649,7 +649,7 @@ fileman.prepAutocompletes = function(EWD) {
         };
         EWD.getFragment(params, function() {
           $('#modal-window').modal('show');
-          
+
           fileman.prepValidation(EWD);
         });
       }
@@ -657,21 +657,21 @@ fileman.prepAutocompletes = function(EWD) {
         toastr['warning']('You don\'t have LAYGO permissions for this file!');
       }
     });
-    
+
     return false;
   });
 }; // End ~ fileman.prepAutocompletes
 
 fileman.laygo = function(fileNumber, EWD) {
-  
+
 };
 
 fileman.prepValidation = function(EWD) {
   let input = $('.fileman-laygo');
-  
+
   let query = Object.assign({}, input.data('fileman'));
   // TODO Separate file and field info into a function separate from filemanDIC()
-  query.quantity = "1"
+  query.quantity = '1';
   /*
   Clean up HTML so jQuery doesn't keep causing colisions as we manipulate
   the HTML5 dataset.
@@ -693,12 +693,12 @@ fileman.prepValidation = function(EWD) {
 
     input.data('fileman').file   = results.file;
     input.data('fileman').fields = results.fields;
-    
+
     // Now set up validation
     $('.fm-btn-validate').click(function(e) {
       let formGroup    = input.parents('.form-group');
       let errorElement = formGroup.find('.form-control-feedback');
-      
+
       let query   = Object.assign({}, input.data('fileman'));
       query.iens  = '+1,';
       query.value = input.val();
@@ -710,23 +710,23 @@ fileman.prepValidation = function(EWD) {
       };
       EWD.send(messageObj, function(responseObj) {
         let results = responseObj.message.results;
-        
+
         if (results.valid) {
           errorElement.html('');
           formGroup.removeClass('has-error');
-          
+
           toastr['success']('Valid entry!');
         }
         if (!results.valid) {
           let message = results.error.help || results.error.message;
-          
+
           errorElement.html(message);
           formGroup.addClass('has-error');
           // Boostrap 4
           // formGroup.addClass('has-danger');
         }
       });
-      
+
       return false;
     }); // End ~ $('.fm-btn-validate').click()
   });
