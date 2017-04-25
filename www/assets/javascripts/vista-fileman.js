@@ -125,6 +125,10 @@ fileman.prepWidgets = function(EWD) {
       // Save the data from our custom data attribute
       let input      = this.element;
       let query      = JSON.parse(input.attr('data-fileman'));
+
+      // On the HTML5 Input we want the file number
+      input[0].dataset.file = query.file.number;
+
       query.quantity = query.quantity || '8';
       /*
       Clean up HTML so jQuery doesn't keep causing colisions as we manipulate
@@ -146,7 +150,9 @@ fileman.prepWidgets = function(EWD) {
         }
 
         input.data('fileman').file   = results.file;
+        input[0].placeholder = results.file.name;
         input.data('fileman').fields = results.fields;
+
       });
       // Save placeholder menu data
       let menuData = {
@@ -166,7 +172,7 @@ fileman.prepWidgets = function(EWD) {
         }
         // Scroll down to input that has focus.
         $('html, body').animate(
-          {scrollTop: input.parents('.form-group').offset().top},
+          {scrollTop: input.parent().closest('div').offset().top},
           '250',
           'swing'
         );
@@ -307,6 +313,28 @@ fileman.prepWidgets = function(EWD) {
         // Attach record data to the element & show display field
         $(this).data('fileman').record = ui.item;
         $(this).val(ui.item[fields[1].key]);
+
+        // HTML5 Dataset
+        $(this)[0].dataset.ien = ui.item.ien;
+        $(this)[0].dataset.name = ui.item[fields[1].key];
+
+        // Tell VistA we selected this entry
+        let messageObj = {
+          service: 'ewd-vista-fileman',
+          type: 'dicSelect',
+          params: { ien: ui.item.ien, file: $(this).data('fileman').file.number
+          }
+        };
+        /*
+        EWD.send(messageObj, function(responseObj) {
+          let results = responseObj.message.results;
+
+          if (results.error) {
+            toastr['error'](results.error.message, ('Fileman error code: ' + results.error.code));
+          }
+        });
+        */
+
 
         return false;
       },
