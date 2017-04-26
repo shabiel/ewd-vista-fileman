@@ -8,7 +8,7 @@ fileman.prep = function(EWD) {
     fileman.prepWidgets(EWD);
 
     // Set up app menu items
-    $('body').on('click', '#option-fileman-list', function() {
+    $('body').one('click', '#option-fileman-list', function() {
       // Clear the page
       $('#main-content').html('');
 
@@ -24,7 +24,7 @@ fileman.prep = function(EWD) {
         fileman.prepSubmitButton(EWD);
       });
     });
-    $('body').on('click', '#option-fileman-find', function() {
+    $('body').one('click', '#option-fileman-find', function() {
       // Clear the page
       $('#main-content').html('');
 
@@ -37,7 +37,7 @@ fileman.prep = function(EWD) {
         fileman.prepAutocompletes(EWD);
       });
     });
-    $('body').on('click', '#option-fileman-validate', function() {
+    $('body').one('click', '#option-fileman-validate', function() {
       // Clear the page
       $('#main-content').html('');
 
@@ -130,11 +130,7 @@ fileman.prepWidgets = function(EWD) {
       input[0].dataset.file = query.file.number;
 
       query.quantity = query.quantity || '8';
-      /*
-      Clean up HTML so jQuery doesn't keep causing colisions as we manipulate
-      the HTML5 dataset.
-      */
-      input.removeAttr('data-fileman');
+
       input.data('fileman', query);
       // Now fetch, parse, & save complete Fileman query data
       let messageObj = {
@@ -142,18 +138,20 @@ fileman.prepWidgets = function(EWD) {
         type: 'filemanDic',
         params: {query}
       };
-      EWD.send(messageObj, function(responseObj) {
-        let results = responseObj.message.results;
+      (function (input, messageObj) {
+        EWD.send(messageObj, function(responseObj) {
+          let results = responseObj.message.results;
 
-        if (results.error) {
-          toastr['error'](results.error.message, ('Fileman error code: ' + results.error.code));
-        }
+          if (results.error) {
+            toastr['error'](results.error.message, ('Fileman error code: ' + results.error.code));
+          }
 
-        input.data('fileman').file   = results.file;
-        input[0].placeholder = results.file.name;
-        input.data('fileman').fields = results.fields;
+          input.data('fileman').file   = results.file;
+          input[0].placeholder = results.file.name;
+          input.data('fileman').fields = results.fields;
 
-      });
+        });
+      })(input, messageObj);
       // Save placeholder menu data
       let menuData = {
         height: 0,
@@ -220,6 +218,9 @@ fileman.prepWidgets = function(EWD) {
 
       this._super();
     }, // End ~ _resizeMenu()
+    _destroy: function() {
+      this.element.autocomplete('destroy');
+    }, // End ~ _destroy()
     options: {
       minLength: 0,
       delay: 200,
@@ -700,11 +701,7 @@ fileman.prepValidation = function(EWD) {
   let query = Object.assign({}, input.data('fileman'));
   // TODO Separate file and field info into a function separate from filemanDIC()
   query.quantity = '1';
-  /*
-  Clean up HTML so jQuery doesn't keep causing colisions as we manipulate
-  the HTML5 dataset.
-  */
-  input.removeAttr('data-fileman');
+
   input.data('fileman', query);
   // Now fetch, parse, & save complete Fileman query data
   let messageObj = {
