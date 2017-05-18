@@ -1,28 +1,39 @@
-<div id="fileman" class="form-group-container">
+<div id="fileman">
   <h2>List Records</h2>
   
-  <div class="form-group">
-    <label for="query-file">File</label>
-    <input id="query-file" class="form-control" type="text" placeholder="File name">
+  <form id="query-file-select" role="form" novalidate>
+    <div class="form-group">
+      <label for="query-file" class="control-label">File</label>
+      
+      <input id="query-file" class="form-control fm-autocomplete" type="text" 
+        placeholder="FILE" data-fileman-config='{"file": {"number": "1"}}'>
     
-    <button id="query-file-btn" class="btn btn-primary">Set</button>
-  </div>
-  
-  <div class="form-group">
-    <label for="query-field">Field</label>
-    <input id="query-field" class="form-control" type="text" placeholder="Field name" disabled>
+      <div class="form-control-feedback"></div>
+    </div>
     
-    <button id="query-field-btn" class="btn btn-primary" disabled>Add</button>
-  </div>
+    <button id="query-file-btn" class="btn btn-primary" disabled>Select</button>
+  </form>
   
+  <form id="query-field-select" role="form" novalidate>
+    <div class="form-group">
+      <label for="query-field" class="control-label">Field</label>
+      <input id="query-field" class="form-control fm-fld-autocomplete" type="text" 
+        placeholder="FIELD" disabled>
+    
+      <div class="form-control-feedback"></div>
+    </div>
+    
+    <button id="query-field-btn" class="btn btn-primary" disabled>Select</button>
+  </form>
+
   <div class="form-group">
     <label for="query-params">Fields</label>
     <textarea type="text" class="form-control" id="query-params" disabled></textarea>
   </div>
-  
+
   <div class="form-group">
     <h3>Query Actions</h3>
-    
+      
     <button id="query-clear-btn" class="btn btn-danger">Clear</button>
     <button id="query-submit-btn" class="btn btn-success" disabled>Submit</button>
   </div>
