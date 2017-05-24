@@ -5,16 +5,16 @@ var fileman = {};
 fileman.prep = function(EWD) {
   $('body').on('click', '#app-fileman', function() {
     vista.switchApp();
-    
+
     fileman.defineWidgets(EWD);
-    
+
     // Set up app menu items
     //
     // List records
     $('body').one('click', '#option-fileman-list', function() {
       // Clear the page
       $('#main-content').html('');
-   
+
       let params = {
         service: 'ewd-vista-fileman',
         name: 'list.html',
@@ -29,7 +29,7 @@ fileman.prep = function(EWD) {
     $('body').one('click', '#option-fileman-find', function() {
       // Clear the page
       $('#main-content').html('');
-      
+
       let params = {
         service: 'ewd-vista-fileman',
         name: 'find.html',
@@ -39,18 +39,18 @@ fileman.prep = function(EWD) {
         fileman.prepAutocompletes(EWD);
       });
     });
-    
+
     // Build app feature/option menu.
     $('#options-menu #app-name').text('Fileman');
     $('#options-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-list">List Records</a></li>');
     $('#options-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-find">Find Record</a></li>');
     $('#options-menu').removeClass('invisible');
-    
+
     // TODO Remove in production
     // Auto-select the Find Records feature
     $('#option-fileman-list').click();
   });
-  
+
   // TODO Remove in production
   // Auto-select the Fileman app
   $('#app-fileman').click();
@@ -67,12 +67,12 @@ fileman.defineWidgets = function(EWD) {
       // Save the data from our custom data attribute
       let input      = this.element;
       let query      = JSON.parse(input.attr('data-fileman-config'));
-      
+
       // On the HTML5 Input we want the file number
       input[0].dataset.file = query.file.number;
-    
+
       query.quantity = query.quantity || '8';
-      
+
       input.data('fileman', query);
       // Now fetch, parse, & save complete Fileman query data
       let messageObj = {
@@ -83,16 +83,15 @@ fileman.defineWidgets = function(EWD) {
       (function (input, messageObj) {
         EWD.send(messageObj, function(responseObj) {
           let results = responseObj.message.results;
-        
+
           if (results.error) {
             toastr['error'](results.error.message, ('Fileman error code: ' + results.error.code));
           }
-        
-          input.data('fileman').file   = results.file;
+          input.data('fileman').file   = results.file.number;
           input[0].placeholder = results.file.name;
           input.data('fileman').fields = results.fields;
-          
-          
+
+
         });
       })(input, messageObj);
       // Save placeholder menu data
@@ -102,7 +101,7 @@ fileman.defineWidgets = function(EWD) {
         prevLastItemPosY: 0
       };
       input.data('menu', menuData);
-      
+
       input.focus(function() {
         /*
         Pre-populate menu. The widget focus event pertains to the items in the
@@ -118,13 +117,13 @@ fileman.defineWidgets = function(EWD) {
           'swing'
         );
       });
-    
+
       this._super();
     }, // End ~ _create()
     _renderItem: function(ul, item) {
       // Grab fields data from autocomplete element
       let fields = this.element.data('fileman').fields;
-    
+
       let html   = '';
       html       = html + '<li>';
       html       = html + '<span>' + item[fields[1].key] + '</span>';
@@ -142,14 +141,14 @@ fileman.defineWidgets = function(EWD) {
         }
       }
       html       = html + '</li>';
-    
+
       return $(html).appendTo(ul);
     }, // End ~ _renderItem()
     _resizeMenu: function() {
       let input      = this.element;
       let menu       = this.menu.element;
       let menuHeight = input.data('menu').height;
-    
+
       if (menuHeight) {
         menu.height(menuHeight);
       }
@@ -158,7 +157,7 @@ fileman.defineWidgets = function(EWD) {
         input.data('menu').height = menuHeight;
         menu.height(menuHeight);
       }
-    
+
       this._super();
     }, // End ~ _resizeMenu()
     _destroy: function() {
@@ -167,7 +166,7 @@ fileman.defineWidgets = function(EWD) {
       input.removeData('filemanConfig');
       input.removeData('fileman');
       input.removeData('menu');
-      
+
       this._super();
     }, // End ~ _destroy()
     options: {
@@ -178,7 +177,7 @@ fileman.defineWidgets = function(EWD) {
       },
       source: function(request, response) {
         let input = this.element;
-      
+
         // Get query properties from element's dataset
         let query        = Object.assign({}, $(input).data('fileman'));
         if (query.fields && Array.isArray(query.fields) && query.fields.length) {
@@ -201,7 +200,7 @@ fileman.defineWidgets = function(EWD) {
         }
         query.stringFrom = request.term.toUpperCase();
         query.stringPart = request.term.toUpperCase();
-      
+
         let messageObj = {
           service: 'ewd-vista-fileman',
           type: 'filemanDic',
@@ -209,11 +208,11 @@ fileman.defineWidgets = function(EWD) {
         };
         EWD.send(messageObj, function(responseObj) {
           let results = responseObj.message.results;
-        
+
           if (results.error) {
             toastr['error'](results.error.message, ('Fileman error code: ' + results.error.code));
           }
-        
+
           response(results.records);
         });
       }, // End ~ source
@@ -222,7 +221,7 @@ fileman.defineWidgets = function(EWD) {
       // Blur, if value has changed
       change: function(event, ui) {
         let input = $(this);
-      
+
         // Only take action if a record has been selected
         if (input.data('fileman').record) {
           // Delete the saved record if the input is empty
@@ -234,7 +233,7 @@ fileman.defineWidgets = function(EWD) {
           else {
             let displayFieldKey   = input.data('fileman').fields[1].key;
             let displayFieldValue = input.data('fileman').record[displayFieldKey];
-          
+
             if (input.val() != displayFieldValue) {
               input.val(displayFieldValue);
             }
@@ -258,7 +257,7 @@ fileman.defineWidgets = function(EWD) {
             */
             let menuQuantity  = menu[0].childElementCount;
             let queryQuantity = input.data('fileman').quantity;
-          
+
             if (menuQuantity >= queryQuantity) {
               /*
               Save the index and y-position of the last item so it can be
@@ -273,7 +272,7 @@ fileman.defineWidgets = function(EWD) {
             }
           }
         });
-      
+
         return false;
       }, // End ~ focus
       open: function(event, ui) {
@@ -304,11 +303,12 @@ fileman.defineWidgets = function(EWD) {
         // Attach record data to the element & show display field
         $(this).data('fileman').record = ui.item;
         $(this).val(ui.item[fields[1].key]);
-      
+
         // HTML5 Dataset
         $(this)[0].dataset.ien = ui.item.ien;
         $(this)[0].dataset.name = ui.item[fields[1].key];
-      
+
+
         // Tell VistA we selected this entry
         let messageObj = {
           service: 'ewd-vista-fileman',
@@ -316,39 +316,41 @@ fileman.defineWidgets = function(EWD) {
           params: { ien: ui.item.ien, file: $(this).data('fileman').file.number
           }
         };
-        /*
         EWD.send(messageObj, function(responseObj) {
-          let results = responseObj.message.results;
-      
+          let results = responseObj.message;
+
           if (results.error) {
             toastr['error'](results.error.message, ('Fileman error code: ' + results.error.code));
+            delete input.data('fileman').record;
+            delete $(this)[0].dataset.ien;
+            delete $(this)[0].dataset.name;
+            input.val('');
           }
         });
-        */
-      
+
         return false;
       } // End ~ events
     } // End ~ options
   }); // End ~ $.widget('vista.filemanAutocomplete', $.ui.autocomplete, {})
-  
+
   /*
   Autocomplete find one field
   Extend the
   jQuery Autocomplete Widget ~ https://api.jqueryui.com/autocomplete/
   */
   $.widget('vista.filemanFieldAutocomplete', $.ui.autocomplete, {
-    _create: function() { 
+    _create: function() {
       let input = this.element;
-      
+
       input.attr('placeholder', 'FIELD');
-      
+
       // Save the data from our custom data attribute, if it exists.
       // Otherwise assume the data is dynamically saved.
       let query = input.attr('data-fileman-config');
       if (query) {
         query = JSON.parse(query);
         input.data('fileman', query);
-      } 
+      }
       else {
         query = input.data('fileman');
       }
@@ -369,7 +371,7 @@ fileman.defineWidgets = function(EWD) {
         input.data('fileman').file   = results.file;
         input.data('fileman').fields = results.fields;
       });
-      
+
       input.focus(function() {
         /*
         Pre-populate menu. The widget focus event pertains to the items in the
@@ -385,7 +387,7 @@ fileman.defineWidgets = function(EWD) {
           'swing'
         );
       });
-    
+
       this._super();
     }, // End ~ _create()
     _renderItem: function(ul, item) {
@@ -416,7 +418,7 @@ fileman.defineWidgets = function(EWD) {
       let input = this.element;
       input.val('');
       input.removeData('fileman');
-      
+
       this._super();
     }, // End ~ _destroy()
     options: {
@@ -480,7 +482,7 @@ fileman.defineWidgets = function(EWD) {
       // Blur, if value has changed
       change: function(event, ui) {
         let input = $(this);
-      
+
         // Only take action if a record has been selected
         if (input.data('fileman').record) {
           // Delete the saved record if the input is empty
@@ -492,7 +494,7 @@ fileman.defineWidgets = function(EWD) {
           else {
             let displayFieldKey   = input.data('fileman').fields[1].key;
             let displayFieldValue = input.data('fileman').record[displayFieldKey];
-          
+
             if (input.val() != displayFieldValue) {
               input.val(displayFieldValue);
             }
@@ -505,28 +507,10 @@ fileman.defineWidgets = function(EWD) {
         // Attach record data to the element & show display field
         $(this).data('fileman').record = ui.item;
         $(this).val(ui.item[fields[1].key]);
-      
+
         // HTML5 Dataset
         $(this)[0].dataset.ien = ui.item.ien;
         $(this)[0].dataset.name = ui.item[fields[1].key];
-      
-        // Tell VistA we selected this entry
-        let messageObj = {
-          service: 'ewd-vista-fileman',
-          type: 'dicSelect',
-          params: { ien: ui.item.ien, file: $(this).data('fileman').file.number
-          }
-        };
-        /*
-        EWD.send(messageObj, function(responseObj) {
-          let results = responseObj.message.results;
-      
-          if (results.error) {
-            toastr['error'](results.error.message, ('Fileman error code: ' + results.error.code));
-          }
-        });
-        */
-      
         return false;
       } // End ~ events
     } // End ~ options
@@ -540,10 +524,10 @@ fileman.prepAutocompletes = function(EWD) {
   // Set up show buttons
   $('.fm-btn-show').click(function() {
     let data = $(this).parents('form').find('.fm-autocomplete').data('fileman').record;
-    
+
     console.log('Record:');
     console.log(data);
-    
+
     return false;
   });
   // Enable show buttons
@@ -601,7 +585,7 @@ fileman.prepListRecords = function(EWD) {
     $(this).attr('disabled', 'disabled');
     $('#query-file').attr('disabled', 'disabled');
     $('#query-field').removeAttr('disabled');
-    
+
     let queryData   = $('#query-file').data('fileman').record;
     let queryParams = {
       file: {
@@ -612,25 +596,25 @@ fileman.prepListRecords = function(EWD) {
     $('#query-field').data('fileman', Object.assign({}, queryParams));
     $('#query-params').data('fileman', Object.assign({}, queryParams));
     $('#query-params').data('fileman').fields = [];
-    
+
     // Initialize the field input widgets
     $('.fm-fld-autocomplete').filemanFieldAutocomplete();
-    
+
     return false;
   });
   // Enable file select button
   $('#query-file').on('filemanautocompleteselect', function(event, ui) {
     $('#query-file-btn').removeAttr('disabled');
   });
-  
+
   // Set up field select button
   $('#query-field-btn').click(function() {
     $(this).attr('disabled', 'disabled');
-    
+
     // Add field to query array
     let field = $('#query-field').data('fileman').record;
     $('#query-params').data('fileman').fields.push(Object.assign({}, field));
-    
+
     // Add field to displayed fields
     let fieldsList = $('#query-params').val();
     if (!fieldsList) {
@@ -640,24 +624,24 @@ fileman.prepListRecords = function(EWD) {
       fieldsList = fieldsList + ', ' + field.name;
       $('#query-params').val(fieldsList);
     }
-    
+
     // Clear field input
     $('#query-field').val('');
     delete $('#query-field').data('fileman').record;
-    
+
     $('#query-submit-btn').removeAttr('disabled');
-    
+
     return false;
   });
   // Enable field select button
   $('#query-field').on('filemanfieldautocompleteselect', function(event, ui) {
     $('#query-field-btn').removeAttr('disabled');
   });
-  
+
   // Set up query submit button
   $('#query-submit-btn').on('click', function() {
     let queryData = $('#query-params').data('fileman');
-    
+
     let messageObj = {
       service: 'ewd-vista-fileman',
       type: 'filemanDic',
@@ -680,7 +664,7 @@ fileman.prepListRecords = function(EWD) {
       fileman.showListRecords(results, EWD);
     });
   });
-  
+
   // Set up clear button
   $('#query-clear-btn').on('click', function() {
     // Disable inputs & buttons
@@ -689,20 +673,20 @@ fileman.prepListRecords = function(EWD) {
     $('#query-field').attr('disabled', 'disabled');
     $('#query-field-btn').attr('disabled', 'disabled');
     $('#query-submit-btn').attr('disabled', 'disabled');
-    
+
     // Reset query
     $('#query-params').val('');
     $('#query-params').removeData('fileman');
-    
+
     // Remove any displayed records
     $('#fileman-results').remove();
-    
+
     // Reset input widgets
     $('#query-file').filemanAutocomplete('destroy').filemanAutocomplete().removeAttr('disabled');
     if ($('#query-field').filemanFieldAutocomplete('instance')) {
       $('#query-field').filemanFieldAutocomplete('destroy');
     }
-    
+
     return false;
   });
 };
