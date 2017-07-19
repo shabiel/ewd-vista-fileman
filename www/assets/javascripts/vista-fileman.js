@@ -3,57 +3,50 @@ var fileman = {};
 
 // Load CSS & set up nav
 fileman.prep = function(EWD) {
-  $('body').on('click', '#app-fileman', function() {
-    vista.switchApp();
+  fileman.defineWidgets(EWD);
 
-    fileman.defineWidgets(EWD);
+  // Set up app menu items
+  //
+  // List records
+  $('body').one('click', '#option-fileman-list', function() {
+    // Clear the page
+    $('#main-content').html('');
 
-    // Set up app menu items
-    //
-    // List records
-    $('body').one('click', '#option-fileman-list', function() {
-      // Clear the page
-      $('#main-content').html('');
-
-      let params = {
-        service: 'ewd-vista-fileman',
-        name: 'list.html',
-        targetId: 'main-content',
-      };
-      EWD.getFragment(params, function() {
-        fileman.prepAutocompletes(EWD);
-        fileman.prepListRecords(EWD);
-      });
+    let params = {
+      service: 'ewd-vista-fileman',
+      name: 'list.html',
+      targetId: 'main-content',
+    };
+    EWD.getFragment(params, function() {
+      fileman.prepAutocompletes(EWD);
+      fileman.prepListRecords(EWD);
     });
-    // Find a record
-    $('body').one('click', '#option-fileman-find', function() {
-      // Clear the page
-      $('#main-content').html('');
-
-      let params = {
-        service: 'ewd-vista-fileman',
-        name: 'find.html',
-        targetId: 'main-content',
-      };
-      EWD.getFragment(params, function() {
-        fileman.prepAutocompletes(EWD);
-      });
-    });
-
-    // Build app feature/option menu.
-    $('#options-menu #app-name').text('Fileman');
-    $('#options-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-list">List Records</a></li>');
-    $('#options-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-find">Find Record</a></li>');
-    $('#options-menu').removeClass('invisible');
-
-    // TODO Remove in production
-    // Auto-select the Find Records feature
-    $('#option-fileman-list').click();
   });
 
+  // Find a record
+  $('body').one('click', '#option-fileman-find', function() {
+    // Clear the page
+    $('#main-content').html('');
+
+    let params = {
+      service: 'ewd-vista-fileman',
+      name: 'find.html',
+      targetId: 'main-content',
+    };
+    EWD.getFragment(params, function() {
+      fileman.prepAutocompletes(EWD);
+    });
+  });
+
+  // Build app feature/option menu.
+  $('#options-menu #app-name').text('Fileman');
+  $('#options-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-list">List Records</a></li>');
+  $('#options-menu .dropdown-menu').append('<li><a href="#" id="option-fileman-find">Find Record</a></li>');
+  $('#options-menu').removeClass('invisible');
+
   // TODO Remove in production
-  // Auto-select the Fileman app
-  $('#app-fileman').click();
+  // Auto-select the Find Records feature
+  $('#option-fileman-list').click();
 };
 
 fileman.defineWidgets = function(EWD) {
