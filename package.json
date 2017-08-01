@@ -1,5 +1,6 @@
 {
   "name": "ewd-vista-fileman",
+  "engines" : { "node" : ">=6" },
   "version": "1.0.2",
   "description": "EWD VistA: FileMan module",
   "main": "index.js",
@@ -10,14 +11,12 @@
     "url": "git+https://github.com/shabiel/ewd-vista-fileman.git"
   },
   "devDependencies": {
-    "eslint": "~3.9",
-    "eslint-plugin-json": "~1.2"
+    "eslint": "",
+    "eslint-plugin-json": ""
   },
   "ewdVista": {
-    "module": "ewd-vista-fileman",
     "parentModule": "ewd-vista",
     "name": "FileMan",
-    "clientModuleName": "fileman",
     "htmlName": "fileman",
     "sortOrder": "21",
     "securityKey": ""
