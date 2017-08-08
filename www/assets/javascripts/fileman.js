@@ -524,11 +524,11 @@ fileman.prepAutocompletes = function(EWD) {
     return false;
   });
   // Enable show buttons
-  $('.fm-autocomplete').on('filemanautocompleteselect', function(event, ui) {
+  $('.fm-autocomplete').on('autocompleteselect', function(event, ui) {
     $(this).parents('form').find('.fm-btn-show').removeAttr('disabled');
   });
   // Disable show buttons
-  $('.fm-autocomplete').on('filemanautocompletechange', function(event, ui) {
+  $('.fm-autocomplete').on('autocompletechange', function(event, ui) {
     if (!$(this).val()) {
       $(this).parents('form').find('.fm-btn-show').attr('disabled', 'disabled');
     }
@@ -596,7 +596,7 @@ fileman.prepListRecords = function(EWD) {
     return false;
   });
   // Enable file select button
-  $('#query-file').on('filemanautocompleteselect', function(event, ui) {
+  $('#query-file').on('autocompleteselect', function(event, ui) {
     $('#query-file-btn').removeAttr('disabled');
   });
 
@@ -627,7 +627,7 @@ fileman.prepListRecords = function(EWD) {
     return false;
   });
   // Enable field select button
-  $('#query-field').on('filemanfieldautocompleteselect', function(event, ui) {
+  $('#query-field').on('autocompleteselect', function(event, ui) {
     $('#query-field-btn').removeAttr('disabled');
   });
 
