@@ -1,6 +1,8 @@
 // Fileman module
 var fileman = {};
 
+vista.fileman = fileman;
+
 // Load CSS & set up nav
 fileman.prep = function(EWD) {
   fileman.defineWidgets(EWD);
@@ -15,13 +17,14 @@ fileman.prep = function(EWD) {
     let params = {
       service: 'ewd-vista-fileman',
       name: 'list.html',
-      targetId: 'main-content',
+      targetId: 'main-content'
     };
     EWD.getFragment(params, function() {
       fileman.prepAutocompletes(EWD);
       fileman.prepListRecords(EWD);
     });
   });
+
 
   // Find a record
   $('body').one('click', '#option-fileman-find', function() {
@@ -31,7 +34,7 @@ fileman.prep = function(EWD) {
     let params = {
       service: 'ewd-vista-fileman',
       name: 'find.html',
-      targetId: 'main-content',
+      targetId: 'main-content'
     };
     EWD.getFragment(params, function() {
       fileman.prepAutocompletes(EWD);
@@ -71,7 +74,7 @@ fileman.defineWidgets = function(EWD) {
       let messageObj = {
         service: 'ewd-vista-fileman',
         type: 'filemanDic',
-        params: {query}
+        params: {query: query}
       };
       (function (input, messageObj) {
         EWD.send(messageObj, function(responseObj) {
@@ -197,7 +200,7 @@ fileman.defineWidgets = function(EWD) {
         let messageObj = {
           service: 'ewd-vista-fileman',
           type: 'filemanDic',
-          params: {query}
+          params: {query: query}
         };
         EWD.send(messageObj, function(responseObj) {
           let results = responseObj.message.results;
@@ -352,7 +355,7 @@ fileman.defineWidgets = function(EWD) {
       let messageObj = {
         service: 'ewd-vista-fileman',
         type: 'getFields',
-        params: {query}
+        params: {query: query}
       };
       EWD.send(messageObj, function(responseObj) {
         let results = responseObj.message.results;
